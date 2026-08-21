@@ -35,12 +35,25 @@ export async function generateMetadata({
   if (!product) {
     notFound();
   }
-  const description = product.description.slice(0, 160);
-  const title = product.name;
-  const images = product.images.map((image) => ({
-    url: absoluteUrl(image),
-    alt: product.name,
-  }));
+  const title =
+    product.metaTitle?.trim() || product.name;
+  const description = (
+    product.metaDescription?.trim() ||
+    product.description ||
+    `${product.name} available at ${site.name}`
+  ).slice(0, 160);
+  const primaryImage = product.images[0];
+  const images = primaryImage
+    ? [
+        {
+          url: absoluteUrl(primaryImage),
+          alt: product.name,
+          width: 1200,
+          height: 1200,
+        },
+      ]
+    : [];
+  const pageTitle = `${title} | ${site.name}`;
   return {
     title,
     description,
@@ -49,14 +62,14 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "website",
-      title: `${product.name} | ${site.name}`,
+      title: pageTitle,
       description,
       url: absoluteUrl(`/product/${product.slug}`),
       images,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.name} | ${site.name}`,
+      title: pageTitle,
       description,
       images: images.map((image) => image.url),
     },

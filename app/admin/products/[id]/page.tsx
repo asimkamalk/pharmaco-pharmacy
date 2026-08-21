@@ -53,6 +53,8 @@ const EditProductPage = async ({ params, searchParams }: PageProps) => {
             slug: product.slug,
             description: product.description,
             longDescription: product.longDescription,
+            metaDescription: product.metaDescription,
+            metaTitle: product.metaTitle,
             sku: product.sku,
             purchasePrice: product.purchasePrice,
             price: product.price,

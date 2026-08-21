@@ -2,6 +2,7 @@
 
 import { saveProduct } from "@/lib/actions/admin";
 import ImageUploadField from "@/components/admin/ImageUploadField";
+import MetaDescriptionField from "@/components/admin/MetaDescriptionField";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 
 interface Option {
@@ -18,6 +19,8 @@ interface ProductFormProps {
     slug: string;
     description: string;
     longDescription?: string;
+    metaDescription?: string;
+    metaTitle?: string;
     sku: string;
     purchasePrice: number;
     price: number;
@@ -182,10 +185,16 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
             className={field}
           />
           <span className="text-xs text-lightColor">
-            Plain text, max 500 characters. Used on the product page summary and
-            SEO.
+            Plain text, max 500 characters. Shown under the product title on the
+            storefront.
           </span>
         </label>
+
+        <MetaDescriptionField
+          productName={product?.name}
+          defaultTitle={product?.metaTitle || ""}
+          defaultValue={product?.metaDescription || ""}
+        />
 
         <RichTextEditor
           name="longDescription"

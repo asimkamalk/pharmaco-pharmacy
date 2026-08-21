@@ -69,6 +69,7 @@ model Category {
   slug        String    @unique
   description String    @default("")
   image       String    @default("/images/categories/placeholder.svg")
+  imageAlt    String    @default("")
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -81,6 +82,7 @@ model Brand {
   slug        String    @unique
   description String    @default("")
   image       String    @default("/images/brands/placeholder.svg")
+  imageAlt    String    @default("")
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -95,6 +97,10 @@ model Product {
   description          String         @default("")
   /** Rich HTML long description (headings, lists, links, etc.) */
   longDescription      String         @default("")
+  /** SEO meta description for Google / social (~160 chars) */
+  metaDescription      String         @default("")
+  /** Optional SEO title override (defaults to product name) */
+  metaTitle            String         @default("")
   sku                  String         @unique
   /** Wholesale / purchase cost in PKR */
   purchasePrice        Float
@@ -129,6 +135,7 @@ model Product {
 model ProductImage {
   id        String  @id @default(cuid())
   url       String
+  alt       String  @default("")
   sortOrder Int     @default(0)
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -233,6 +240,7 @@ model SiteSettings {
   mapEmbedUrl          String   @default("")
   mapLinkUrl           String   @default("")
   logoUrl              String   @default("/images/pharmaco-logo-text.png")
+  logoAlt              String   @default("Pharmaco Pharmacy")
   facebookUrl          String   @default("")
   instagramUrl         String   @default("")
   tiktokUrl            String   @default("")
@@ -278,9 +286,28 @@ model HeroSlide {
   ctaSecondaryLabel  String   @default("")
   ctaSecondaryHref   String   @default("")
   backgroundUrl      String
+  backgroundAlt      String   @default("")
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   @@index([isActive, sortOrder])
+}
+
+/** Uploaded media library (alt text + file metadata for SEO) */
+model Media {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String   @default("")
+  filename  String
+  folder    String
+  mimeType  String
+  sizeBytes Int
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([folder])
+  @@unique([url])
 }
