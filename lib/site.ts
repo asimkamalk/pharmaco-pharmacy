@@ -220,7 +220,13 @@ export async function ensureSiteSettings() {
     });
   }
 
-  // Backfill NAP / map / SEO when still on placeholder values
+  // Backfill NAP / map / SEO / 24-7 hours when still on placeholder values
+  const oldHours = "Mon – Sun: 9:00 AM – 11:00 PM";
+  const oldEstimate =
+    "Same-day delivery within Hayatabad, 1–2 days across Peshawar";
+  const needsHoursUpdate =
+    existing.openingHours === oldHours ||
+    existing.deliveryEstimate === oldEstimate;
   const needsNapUpdate =
     existing.address.includes("[") ||
     existing.phone.includes("XXX") ||
@@ -228,26 +234,43 @@ export async function ensureSiteSettings() {
     !existing.mapLinkUrl.includes("maps.app.goo.gl/RRzaApoHHqsozbdy8") ||
     !existing.mapEmbedUrl.includes("0x38d911005f142e31");
 
-  if (!needsNapUpdate) return existing;
+  if (!needsNapUpdate && !needsHoursUpdate) return existing;
 
   return prisma.siteSettings.update({
     where: { id: "default" },
     data: {
-      address: d.location.address,
-      phone: d.contact.phone,
-      whatsapp: d.contact.whatsapp,
-      email:
-        existing.email.includes("example.com") ? d.contact.email : existing.email,
-      mapEmbedUrl: d.map.embedUrl,
-      mapLinkUrl: d.map.linkUrl,
-      seoTitle: d.seo.title,
-      seoDescription: d.seo.description,
-      easyPaisaNumber: existing.easyPaisaNumber.includes("X")
-        ? d.payments.easyPaisa.mobileNumber
-        : existing.easyPaisaNumber,
-      jazzCashNumber: existing.jazzCashNumber.includes("X")
-        ? d.payments.jazzCash.mobileNumber
-        : existing.jazzCashNumber,
+      ...(needsNapUpdate
+        ? {
+            address: d.location.address,
+            phone: d.contact.phone,
+            whatsapp: d.contact.whatsapp,
+            email: existing.email.includes("example.com")
+              ? d.contact.email
+              : existing.email,
+            mapEmbedUrl: d.map.embedUrl,
+            mapLinkUrl: d.map.linkUrl,
+            seoTitle: d.seo.title,
+            seoDescription: d.seo.description,
+            easyPaisaNumber: existing.easyPaisaNumber.includes("X")
+              ? d.payments.easyPaisa.mobileNumber
+              : existing.easyPaisaNumber,
+            jazzCashNumber: existing.jazzCashNumber.includes("X")
+              ? d.payments.jazzCash.mobileNumber
+              : existing.jazzCashNumber,
+          }
+        : {}),
+      ...(needsHoursUpdate
+        ? {
+            openingHours:
+              existing.openingHours === oldHours
+                ? d.contact.openingHours
+                : existing.openingHours,
+            deliveryEstimate:
+              existing.deliveryEstimate === oldEstimate
+                ? d.delivery.estimate
+                : existing.deliveryEstimate,
+          }
+        : {}),
     },
   });
 }

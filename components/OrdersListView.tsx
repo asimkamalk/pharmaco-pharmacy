@@ -4,6 +4,7 @@ import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 import { auth } from "@/auth";
 import { getOrdersForUser } from "@/lib/orders";
+import { formatPkDateTime } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
 import type { OrderStatus, PaymentMethod } from "@/types";
 import { redirect } from "next/navigation";
@@ -66,7 +67,7 @@ const OrdersListView = async () => {
                       {order.orderNumber}
                     </p>
                     <p className="mt-1 text-xs text-lightColor">
-                      {new Date(order.createdAt).toLocaleString("en-PK")} ·{" "}
+                      {formatPkDateTime(order.createdAt)} ·{" "}
                       {paymentLabels[order.paymentMethod]} ·{" "}
                       {order.shippingAddress.city}
                     </p>

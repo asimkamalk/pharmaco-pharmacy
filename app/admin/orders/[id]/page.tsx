@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import OrderStatusForm from "@/components/admin/OrderStatusForm";
 import { getOrderById } from "@/lib/orders";
+import { formatPkDateTime } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata = { title: "Order Detail · Admin" };
@@ -33,7 +34,7 @@ const AdminOrderDetailPage = async ({ params }: PageProps) => {
             {order.orderNumber}
           </h1>
           <p className="text-sm text-lightColor">
-            {new Date(order.createdAt).toLocaleString("en-PK")}
+            {formatPkDateTime(order.createdAt)}
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-4">

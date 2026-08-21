@@ -311,3 +311,131 @@ export async function deleteOrder(formData: FormData) {
   revalidatePath("/admin");
   redirectWithFlash("/admin/orders", { saved: true });
 }
+
+export async function updateCustomer(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  const back = id ? `/admin/customers/${id}` : "/admin/customers";
+
+  if (!id) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const username = String(formData.get("username") ?? "").trim() || null;
+
+  if (!name || name.length < 2) {
+    redirectWithFlash(back, { error: "Name is required" });
+  }
+  if (!email || !email.includes("@")) {
+    redirectWithFlash(back, { error: "A valid email is required" });
+  }
+
+  const existing = await prisma.user.findFirst({
+    where: { id, role: "USER" },
+    select: { id: true },
+  });
+  if (!existing) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+
+  const emailTaken = await prisma.user.findFirst({
+    where: { email, NOT: { id } },
+    select: { id: true },
+  });
+  if (emailTaken) {
+    redirectWithFlash(back, { error: "That email is already in use" });
+  }
+
+  if (username) {
+    const usernameTaken = await prisma.user.findFirst({
+      where: { username, NOT: { id } },
+      select: { id: true },
+    });
+    if (usernameTaken) {
+      redirectWithFlash(back, { error: "That username is already in use" });
+    }
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id },
+      data: { name, email, username },
+    });
+  } catch {
+    redirectWithFlash(back, { error: "Could not update customer" });
+  }
+
+  revalidatePath("/admin/customers");
+  revalidatePath(`/admin/customers/${id}`);
+  revalidatePath("/admin");
+  redirectWithFlash(back, { saved: true });
+}
+
+export async function deleteCustomer(formData: FormData) {
+  await requireAdmin();
+  const customerId = String(formData.get("customerId") ?? "").trim();
+  if (!customerId) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+
+  const customer = await prisma.user.findFirst({
+    where: { id: customerId, role: "USER" },
+    select: { id: true },
+  });
+  if (!customer) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+
+  try {
+    await prisma.user.delete({ where: { id: customerId } });
+  } catch {
+    redirectWithFlash("/admin/customers", {
+      error: "Could not delete this customer",
+    });
+  }
+
+  revalidatePath("/admin/customers");
+  revalidatePath("/admin");
+  redirectWithFlash("/admin/customers", { saved: true });
+}
+
+export async function setCustomerRestricted(formData: FormData) {
+  await requireAdmin();
+  const customerId = String(formData.get("customerId") ?? "").trim();
+  const restricted = String(formData.get("restricted") ?? "") === "true";
+  const back = customerId
+    ? `/admin/customers/${customerId}`
+    : "/admin/customers";
+
+  if (!customerId) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+
+  const customer = await prisma.user.findFirst({
+    where: { id: customerId, role: "USER" },
+    select: { id: true },
+  });
+  if (!customer) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: customerId },
+      data: { isRestricted: restricted },
+    });
+  } catch {
+    redirectWithFlash(back, {
+      error: restricted
+        ? "Could not restrict this customer"
+        : "Could not unrestrict this customer",
+    });
+  }
+
+  revalidatePath("/admin/customers");
+  revalidatePath(`/admin/customers/${customerId}`);
+  revalidatePath("/admin");
+  redirectWithFlash(back, { saved: true });
+}

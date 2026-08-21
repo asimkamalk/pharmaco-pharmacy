@@ -27,8 +27,25 @@ function phoneToE164(phone: string) {
   return digits;
 }
 
-/** Parse "Mon – Sun: 9:00 AM – 11:00 PM" into Schema.org OpeningHoursSpecification */
+/** Parse opening hours text into Schema.org OpeningHoursSpecification */
 function openingHoursSpec(hours: string) {
+  if (/24\s*\/\s*7|open\s*24/i.test(hours)) {
+    return {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+      opens: "00:00",
+      closes: "23:59",
+    };
+  }
+
   const match = hours.match(
     /(\d{1,2}):(\d{2})\s*(AM|PM)\s*[–-]\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i,
   );

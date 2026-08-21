@@ -91,12 +91,13 @@ export const defaultSiteConfig: SiteConfig = {
     phone: "+92 332 7373354",
     whatsapp: "+92 332 7373354",
     email: "info@pharmaco.pk",
-    openingHours: "Mon – Sun: 9:00 AM – 11:00 PM",
+    openingHours: "Open 24/7 · Monday – Sunday",
   },
   delivery: {
     standardFee: 150,
     freeDeliveryAbove: 2000,
-    estimate: "Same-day delivery within Hayatabad, 1–2 days across Peshawar",
+    estimate:
+      "24/7 delivery Mon–Sun · Same-day in Hayatabad, 1–2 days across Peshawar",
   },
   payments: {
     bankTransfer: {

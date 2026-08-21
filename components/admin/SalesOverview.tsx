@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import SalesChart from "@/components/admin/SalesChart";
+import { toPkDateKey } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 const PRESETS = [
+  { id: "today", label: "Today" },
   { id: "7d", label: "7 days" },
   { id: "30d", label: "30 days" },
   { id: "3m", label: "3 months" },
@@ -24,6 +26,7 @@ interface SalesOverviewProps {
   rangeProfit: number;
   categoryCount: number;
   brandCount: number;
+  seriesGranularity?: "hour" | "day";
 }
 
 const SalesOverview = ({
@@ -36,6 +39,7 @@ const SalesOverview = ({
   rangeProfit,
   categoryCount,
   brandCount,
+  seriesGranularity = "day",
 }: SalesOverviewProps) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -72,7 +76,7 @@ const SalesOverview = ({
             Sales ({rangeLabel.toLowerCase()})
           </h2>
           <p className="text-xs text-lightColor">
-            Green = revenue · Orange = estimated profit
+            Green = revenue · Orange = estimated profit · Pakistan time (PKT)
           </p>
           <p className="mt-2 text-sm text-darkColor">
             <span className="font-semibold text-shop_dark_green">
@@ -145,7 +149,7 @@ const SalesOverview = ({
               type="date"
               value={customTo}
               min={customFrom}
-              max={new Date().toISOString().slice(0, 10)}
+              max={toPkDateKey()}
               onChange={(event) => setCustomTo(event.target.value)}
               className="block rounded-lg border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-shop_light_green"
             />
@@ -158,9 +162,14 @@ const SalesOverview = ({
             Apply dates
           </button>
         </div>
+        <p className="text-[11px] text-lightColor">
+          {seriesGranularity === "hour"
+            ? "Today shows each hour from 12:00 AM–11:59 PM Pakistan time."
+            : "Days run midnight–midnight Pakistan time (Asia/Karachi)."}
+        </p>
       </div>
 
-      <SalesChart data={data} />
+      <SalesChart data={data} granularity={seriesGranularity} />
     </div>
   );
 };

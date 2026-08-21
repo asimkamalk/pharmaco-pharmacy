@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import type { Provider } from "next-auth/providers";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
@@ -7,6 +7,10 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+
+class RestrictedAccountError extends CredentialsSignin {
+  code = "restricted";
+}
 
 const credentialsSchema = z.object({
   email: z.string().trim().min(1),
@@ -38,6 +42,10 @@ const providers: Provider[] = [
         user.passwordHash,
       );
       if (!valid) return null;
+
+      if (user.isRestricted) {
+        throw new RestrictedAccountError();
+      }
 
       return {
         id: user.id,
@@ -79,22 +87,73 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   providers,
   callbacks: {
+    async signIn({ user, account }) {
+      if (!user?.id && !user?.email) return true;
+
+      const dbUser = user.id
+        ? await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { isRestricted: true },
+          })
+        : user.email
+          ? await prisma.user.findUnique({
+              where: { email: user.email },
+              select: { isRestricted: true },
+            })
+          : null;
+
+      if (dbUser?.isRestricted) {
+        if (account?.provider && account.provider !== "credentials") {
+          return "/sign-in?error=Restricted";
+        }
+        return false;
+      }
+
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: "USER" | "ADMIN" }).role ?? "USER";
-      } else if (token.id && !token.role) {
+      }
+
+      if (!token.id) return token;
+
+      try {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true },
+          select: { role: true, isRestricted: true },
         });
-        token.role = dbUser?.role ?? "USER";
+
+        if (!dbUser) {
+          return {};
+        }
+
+        if (dbUser.isRestricted) {
+          return { error: "Restricted" };
+        }
+
+        token.role = dbUser.role;
+        return token;
+      } catch {
+        return token;
       }
-      return token;
     },
     async session({ session, token }) {
+      if (token.error === "Restricted" || !token.id) {
+        return {
+          ...session,
+          user: {
+            ...session.user,
+            id: "",
+            name: null,
+            email: null,
+            image: null,
+          },
+        };
+      }
       if (session.user) {
-        if (token.id) session.user.id = token.id as string;
+        session.user.id = token.id as string;
         session.user.role = (token.role as "USER" | "ADMIN") ?? "USER";
       }
       return session;
