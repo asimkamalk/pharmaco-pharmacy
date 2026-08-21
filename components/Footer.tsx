@@ -97,7 +97,14 @@ const Footer = async () => {
                   className="mt-0.5 h-4 w-4 shrink-0 text-shop_light_green"
                   aria-hidden
                 />
-                {siteConfig.location.address}
+                <a
+                  href={siteConfig.map.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-shop_light_green"
+                >
+                  {siteConfig.location.address}
+                </a>
               </p>
               <p className="flex items-center gap-2">
                 <Phone

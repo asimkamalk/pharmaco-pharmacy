@@ -5,6 +5,7 @@ import { ChevronRight, ClipboardList, ShieldCheck, Truck } from "lucide-react";
 import AddToCartButton from "@/components/AddToCartButton";
 import AddToWishlistButton from "@/components/AddToWishlistButton";
 import Container from "@/components/Container";
+import JsonLd from "@/components/JsonLd";
 import PriceView from "@/components/PriceView";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
@@ -15,6 +16,7 @@ import {
   getProductBySlug,
   getRelatedProducts,
 } from "@/lib/products";
+import { absoluteUrl, buildProductJsonLd } from "@/lib/seo";
 import { getSiteConfig } from "@/lib/site";
 import { sanitizeProductHtml } from "@/lib/sanitize";
 
@@ -34,13 +36,29 @@ export async function generateMetadata({
     notFound();
   }
   const description = product.description.slice(0, 160);
+  const title = product.name;
+  const images = product.images.map((image) => ({
+    url: absoluteUrl(image),
+    alt: product.name,
+  }));
   return {
-    title: product.name,
+    title,
     description,
+    alternates: {
+      canonical: `/product/${product.slug}`,
+    },
     openGraph: {
+      type: "website",
       title: `${product.name} | ${site.name}`,
       description,
-      images: product.images.map((image) => ({ url: image })),
+      url: absoluteUrl(`/product/${product.slug}`),
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | ${site.name}`,
+      description,
+      images: images.map((image) => image.url),
     },
   };
 }
@@ -75,6 +93,7 @@ const ProductPage = async ({ params }: ProductPageProps) => {
 
   return (
     <main className="bg-white">
+      <JsonLd data={buildProductJsonLd(product, siteConfig)} />
       <Container className="py-8 sm:py-10">
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-sm text-lightColor">

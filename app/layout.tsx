@@ -3,12 +3,18 @@ import { Poppins } from "next/font/google";
 
 import "./globals.css";
 import AuthSessionProvider from "@/components/AuthSessionProvider";
+import JsonLd from "@/components/JsonLd";
 import SiteConfigProvider from "@/components/SiteConfigProvider";
 import StoreChrome from "@/components/StoreChrome";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { auth } from "@/auth";
 import { getSiteConfig } from "@/lib/site";
+import {
+  buildLocalBusinessJsonLd,
+  buildRootMetadata,
+  buildWebsiteJsonLd,
+} from "@/lib/seo";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -19,20 +25,7 @@ const poppins = Poppins({
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteConfig();
-  return {
-    title: {
-      template: `%s - ${site.shortName}`,
-      default: site.seo.title || site.name,
-    },
-    description: site.seo.description || site.description,
-    openGraph: {
-      siteName: site.name,
-      type: "website",
-      locale: "en_US",
-      title: site.seo.title || site.name,
-      description: site.seo.description || site.description,
-    },
-  };
+  return buildRootMetadata(site);
 }
 
 export default async function RootLayout({
@@ -45,6 +38,9 @@ export default async function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body className="font-poppins antialiased">
+        <JsonLd
+          data={[buildLocalBusinessJsonLd(site), buildWebsiteJsonLd(site)]}
+        />
         <AuthSessionProvider session={session}>
           <SiteConfigProvider value={site}>
             <StoreChrome header={<Header />} footer={<Footer />}>

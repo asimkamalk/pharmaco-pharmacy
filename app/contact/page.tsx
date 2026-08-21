@@ -9,32 +9,45 @@ export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteConfig();
   return {
     title: "Contact Us",
-    description: `Get in touch with ${site.name} in ${site.location.area}, ${site.location.city} — phone, WhatsApp, email and store location.`,
+    description: `Visit ${site.name} at ${site.location.address}. Call ${site.contact.phone} or WhatsApp for medicines and healthcare support in ${site.location.area}, ${site.location.city}.`,
+    alternates: { canonical: "/contact" },
+    openGraph: {
+      title: `Contact ${site.name}`,
+      description: `Find us at ${site.location.address}`,
+      url: "/contact",
+    },
   };
 }
 
 const ContactPage = async () => {
   const siteConfig = await getSiteConfig();
+  const whatsappDigits = siteConfig.contact.whatsapp.replace(/\D/g, "");
   const contactDetails = [
     {
       icon: MapPin,
       title: "Visit Us",
       value: siteConfig.location.address,
+      href: siteConfig.map.linkUrl,
+      external: true,
     },
     {
       icon: Phone,
       title: "Call Us",
       value: siteConfig.contact.phone,
+      href: `tel:${siteConfig.contact.phone.replace(/\s/g, "")}`,
     },
     {
       icon: MessageCircle,
       title: "WhatsApp",
       value: siteConfig.contact.whatsapp,
+      href: `https://wa.me/${whatsappDigits}`,
+      external: true,
     },
     {
       icon: Mail,
       title: "Email",
       value: siteConfig.contact.email,
+      href: `mailto:${siteConfig.contact.email}`,
     },
     {
       icon: Clock,
@@ -70,7 +83,18 @@ const ContactPage = async () => {
                   <p className="text-sm font-semibold text-darkColor">
                     {item.title}
                   </p>
-                  <p className="mt-0.5 text-sm text-lightColor">{item.value}</p>
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      target={item.external ? "_blank" : undefined}
+                      rel={item.external ? "noopener noreferrer" : undefined}
+                      className="mt-0.5 block text-sm text-lightColor transition-colors hover:text-shop_light_green"
+                    >
+                      {item.value}
+                    </a>
+                  ) : (
+                    <p className="mt-0.5 text-sm text-lightColor">{item.value}</p>
+                  )}
                 </div>
               </div>
             ))}

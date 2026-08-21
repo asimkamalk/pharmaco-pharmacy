@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   ArrowRight,
   BadgeCheck,
@@ -21,6 +22,15 @@ import {
 import { getHeroSlides } from "@/lib/hero";
 import { getSiteConfig } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteConfig();
+  return {
+    title: { absolute: site.seo.title || site.name },
+    description: site.seo.description || site.description,
+    alternates: { canonical: "/" },
+  };
+}
 
 const whyIcons = [BadgeCheck, Stethoscope, Truck, ShieldCheck] as const;
 

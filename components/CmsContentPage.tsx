@@ -18,6 +18,11 @@ export async function buildCmsMetadata(
   return {
     title: page?.title || fallbackTitleFor(slug, site.name),
     description: `${page?.title || fallbackTitleFor(slug, site.name)} — ${site.name}, ${site.location.area}, ${site.location.city}.`,
+    alternates: { canonical: `/${slug === "about" ? "about" : slug}` },
+    openGraph: {
+      title: page?.title || fallbackTitleFor(slug, site.name),
+      description: `${site.name} in ${site.location.area}, ${site.location.city}`,
+    },
   };
 }
 
