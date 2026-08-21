@@ -1,10 +1,79 @@
-/**
- * Central place for business information.
- *
- * NOTE: Values marked [PLACEHOLDER] are intentionally not real.
- * Replace them with the actual Pharmaco Pharmacy details before going live.
- */
-export const siteConfig = {
+export type WhyChooseItem = {
+  title: string;
+  description: string;
+};
+
+export type SiteConfig = {
+  name: string;
+  shortName: string;
+  tagline: string;
+  description: string;
+  location: {
+    area: string;
+    city: string;
+    country: string;
+    address: string;
+  };
+  contact: {
+    phone: string;
+    whatsapp: string;
+    email: string;
+    openingHours: string;
+  };
+  delivery: {
+    standardFee: number;
+    freeDeliveryAbove: number;
+    estimate: string;
+  };
+  payments: {
+    bankTransfer: {
+      bankName: string;
+      accountTitle: string;
+      accountNumber: string;
+      iban: string;
+    };
+    easyPaisa: {
+      accountTitle: string;
+      mobileNumber: string;
+    };
+    jazzCash: {
+      accountTitle: string;
+      mobileNumber: string;
+    };
+  };
+  map: {
+    embedUrl: string;
+    linkUrl: string;
+  };
+  branding: {
+    logoUrl: string;
+  };
+  social: {
+    facebook: string;
+    instagram: string;
+    tiktok: string;
+    twitter: string;
+  };
+  seo: {
+    title: string;
+    description: string;
+  };
+  home: {
+    heroEyebrow: string;
+    heroHeadline: string;
+    heroSubcopy: string;
+    heroCtaPrimaryLabel: string;
+    heroCtaPrimaryHref: string;
+    heroCtaSecondaryLabel: string;
+    heroCtaSecondaryHref: string;
+    promoHeadline: string;
+    promoSubcopy: string;
+    whyChoose: WhyChooseItem[];
+  };
+};
+
+/** Fallback defaults used before DB seed / if DB is empty */
+export const defaultSiteConfig: SiteConfig = {
   name: "Pharmaco Pharmacy",
   shortName: "Pharmaco",
   tagline: "Your trusted pharmacy in Hayatabad, Peshawar",
@@ -14,31 +83,19 @@ export const siteConfig = {
     area: "Hayatabad",
     city: "Peshawar",
     country: "Pakistan",
-    /** [PLACEHOLDER] Replace with the real street address. */
     address: "[Street Address], Hayatabad, Peshawar",
   },
   contact: {
-    /** [PLACEHOLDER] Replace with the real phone number. */
     phone: "+92 XXX XXXXXXX",
-    /** [PLACEHOLDER] Replace with the real WhatsApp number. */
     whatsapp: "+92 XXX XXXXXXX",
-    /** [PLACEHOLDER] Replace with the real email address. */
     email: "info@example.com",
-    /** [PLACEHOLDER] Replace with the real opening hours. */
     openingHours: "Mon – Sun: 9:00 AM – 11:00 PM",
   },
   delivery: {
-    /** [PLACEHOLDER] Standard delivery charges in PKR — update to the real fee. */
     standardFee: 150,
-    /** [PLACEHOLDER] Order subtotal (PKR) above which delivery is free. */
     freeDeliveryAbove: 2000,
-    /** [PLACEHOLDER] Delivery estimate copy shown to customers. */
     estimate: "Same-day delivery within Hayatabad, 1–2 days across Peshawar",
   },
-  /**
-   * Manual payment accounts — customers pay and share a transaction reference.
-   * Orders stay pending until Pharmaco verifies the payment.
-   */
   payments: {
     bankTransfer: {
       bankName: "[Bank Name]",
@@ -48,26 +105,71 @@ export const siteConfig = {
     },
     easyPaisa: {
       accountTitle: "Pharmaco Pharmacy",
-      /** [PLACEHOLDER] EasyPaisa mobile account number */
       mobileNumber: "03XX XXXXXXX",
     },
     jazzCash: {
       accountTitle: "Pharmaco Pharmacy",
-      /** [PLACEHOLDER] JazzCash mobile account number */
       mobileNumber: "03XX XXXXXXX",
     },
   },
-  /**
-   * Google Maps embed for Hayatabad, Peshawar.
-   * Replace with your exact pharmacy pin when ready.
-   */
   map: {
     embedUrl:
       "https://www.google.com/maps?q=Hayatabad,+Peshawar,+Pakistan&output=embed",
     linkUrl:
       "https://www.google.com/maps/search/?api=1&query=Hayatabad+Peshawar+Pakistan",
   },
-} as const;
+  branding: {
+    logoUrl: "/images/pharmaco-logo-text.png",
+  },
+  social: {
+    facebook: "https://www.facebook.com/",
+    instagram: "https://www.instagram.com/",
+    tiktok: "https://www.tiktok.com/",
+    twitter: "https://x.com/",
+  },
+  seo: {
+    title: "Pharmaco Pharmacy | Hayatabad, Peshawar",
+    description:
+      "Medicines, healthcare products, wellness essentials and personal care items from a trusted pharmacy in Hayatabad, Peshawar.",
+  },
+  home: {
+    heroEyebrow: "",
+    heroHeadline: "Your health, delivered with care",
+    heroSubcopy:
+      "Genuine medicines, wellness essentials and personal care — with pharmacist support and fast local delivery across Peshawar.",
+    heroCtaPrimaryLabel: "Shop now",
+    heroCtaPrimaryHref: "/shop",
+    heroCtaSecondaryLabel: "Contact us",
+    heroCtaSecondaryHref: "/contact",
+    promoHeadline: "Free delivery on qualifying orders",
+    promoSubcopy: "Pay with COD, bank transfer, EasyPaisa or JazzCash.",
+    whyChoose: [
+      {
+        title: "Genuine Products",
+        description:
+          "Medicines and healthcare products sourced from authorised distributors.",
+      },
+      {
+        title: "Licensed Pharmacists",
+        description:
+          "Orders are reviewed and dispensed under professional supervision.",
+      },
+      {
+        title: "Fast Local Delivery",
+        description:
+          "Same-day delivery within Hayatabad, 1–2 days across Peshawar.",
+      },
+      {
+        title: "Safe & Secure",
+        description:
+          "Prescription-required items are clearly marked and verified at checkout.",
+      },
+    ],
+  },
+};
+
+/** @deprecated Prefer getSiteConfig() / useSiteConfig() — kept for gradual migration */
+export const siteConfig = defaultSiteConfig;
 
 export const currency = {
   code: "PKR",

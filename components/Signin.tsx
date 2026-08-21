@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { LogOut, MapPinned, Package, UserRound } from "lucide-react";
+import { LogOut, MapPinned, Package, Settings, UserRound } from "lucide-react";
 import type { Session } from "next-auth";
 
 interface SigninProps {
@@ -18,6 +18,7 @@ const Signin = ({ initialUser = null }: SigninProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const user = session?.user ?? initialUser;
+  const isAdmin = user?.role === "ADMIN";
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -120,6 +121,17 @@ const Signin = ({ initialUser = null }: SigninProps) => {
             <Package className="h-4 w-4 text-shop_light_green" />
             My Orders
           </Link>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm font-semibold text-shop_dark_green transition-colors hover:bg-shop_light_bg"
+            >
+              <Settings className="h-4 w-4" />
+              Admin dashboard
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"

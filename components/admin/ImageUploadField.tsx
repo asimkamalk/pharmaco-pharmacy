@@ -7,18 +7,20 @@ import { ImagePlus, Trash2 } from "lucide-react";
 interface ImageUploadFieldProps {
   name?: string;
   existingUrl?: string;
+  label?: string;
 }
 
 const ImageUploadField = ({
   name = "image",
   existingUrl = "/images/products/placeholder.svg",
+  label = "Product image",
 }: ImageUploadFieldProps) => {
   const [preview, setPreview] = useState(existingUrl);
   const [fileName, setFileName] = useState("");
 
   return (
     <div className="space-y-2 md:col-span-2">
-      <span className="text-sm font-medium text-darkColor">Product image</span>
+      <span className="text-sm font-medium text-darkColor">{label}</span>
       <input type="hidden" name="imageUrl" value={existingUrl} />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">

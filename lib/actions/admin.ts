@@ -142,9 +142,15 @@ export async function saveCategory(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const slug = String(formData.get("slug") ?? "").trim() || slugify(title);
   const description = String(formData.get("description") ?? "").trim();
-  const image =
+  let image =
     String(formData.get("image") ?? "").trim() ||
+    String(formData.get("imageUrl") ?? "").trim() ||
     "/images/categories/placeholder.svg";
+  const imageFile = formData.get("imageFile");
+  if (imageFile instanceof File && imageFile.size > 0) {
+    const { saveUploadedImage } = await import("@/lib/upload");
+    image = await saveUploadedImage(imageFile, "categories");
+  }
   const isActive = formBool(formData, "isActive");
 
   if (title.length < 2) throw new Error("Category title is required");
@@ -172,9 +178,15 @@ export async function saveBrand(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const slug = String(formData.get("slug") ?? "").trim() || slugify(title);
   const description = String(formData.get("description") ?? "").trim();
-  const image =
+  let image =
     String(formData.get("image") ?? "").trim() ||
+    String(formData.get("imageUrl") ?? "").trim() ||
     "/images/brands/placeholder.svg";
+  const imageFile = formData.get("imageFile");
+  if (imageFile instanceof File && imageFile.size > 0) {
+    const { saveUploadedImage } = await import("@/lib/upload");
+    image = await saveUploadedImage(imageFile, "brands");
+  }
   const isActive = formBool(formData, "isActive");
 
   if (title.length < 2) throw new Error("Brand title is required");

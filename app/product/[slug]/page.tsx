@@ -15,7 +15,7 @@ import {
   getProductBySlug,
   getRelatedProducts,
 } from "@/lib/products";
-import { siteConfig } from "@/constants/site";
+import { getSiteConfig } from "@/lib/site";
 import { sanitizeProductHtml } from "@/lib/sanitize";
 
 interface ProductPageProps {
@@ -26,7 +26,10 @@ export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, site] = await Promise.all([
+    getProductBySlug(slug),
+    getSiteConfig(),
+  ]);
   if (!product) {
     notFound();
   }
@@ -35,7 +38,7 @@ export async function generateMetadata({
     title: product.name,
     description,
     openGraph: {
-      title: `${product.name} | ${siteConfig.name}`,
+      title: `${product.name} | ${site.name}`,
       description,
       images: product.images.map((image) => ({ url: image })),
     },
@@ -50,10 +53,11 @@ const ProductPage = async ({ params }: ProductPageProps) => {
     notFound();
   }
 
-  const [category, relatedProducts, brand] = await Promise.all([
+  const [category, relatedProducts, brand, siteConfig] = await Promise.all([
     getCategoryBySlug(product.categorySlug),
     getRelatedProducts(product),
     getBrandBySlug(product.brandSlug),
+    getSiteConfig(),
   ]);
 
   const inStock = product.stock > 0;

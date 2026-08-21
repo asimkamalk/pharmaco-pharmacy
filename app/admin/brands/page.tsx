@@ -24,19 +24,32 @@ const AdminBrandsPage = async () => {
 
       <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
         <h2 className="mb-4 font-semibold text-darkColor">Add brand</h2>
-        <form action={saveBrand} className="grid gap-3 md:grid-cols-2">
+        <form
+          action={saveBrand}
+          encType="multipart/form-data"
+          className="grid gap-3 md:grid-cols-2"
+        >
           <input name="title" required placeholder="Title" className={field} />
           <input name="slug" placeholder="Slug (optional)" className={field} />
           <input
             name="image"
-            placeholder="Image URL"
+            placeholder="Image URL (or upload)"
             defaultValue="/images/brands/placeholder.svg"
             className={field}
           />
+          <label className="space-y-1 text-sm">
+            <span>Upload image</span>
+            <input
+              type="file"
+              name="imageFile"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className={field}
+            />
+          </label>
           <input
             name="description"
             placeholder="Description"
-            className={field}
+            className={`${field} md:col-span-2`}
           />
           <label className="flex items-center gap-2 text-sm md:col-span-2">
             <input type="checkbox" name="isActive" defaultChecked />
@@ -56,6 +69,7 @@ const AdminBrandsPage = async () => {
           <form
             key={brand.id}
             action={saveBrand}
+            encType="multipart/form-data"
             className="grid gap-3 rounded-2xl border border-black/10 bg-white p-5 shadow-sm md:grid-cols-2"
           >
             <input type="hidden" name="id" value={brand.id} />
@@ -67,10 +81,19 @@ const AdminBrandsPage = async () => {
             />
             <input name="slug" defaultValue={brand.slug} className={field} />
             <input name="image" defaultValue={brand.image} className={field} />
+            <label className="space-y-1 text-sm">
+              <span>Replace image</span>
+              <input
+                type="file"
+                name="imageFile"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className={field}
+              />
+            </label>
             <input
               name="description"
               defaultValue={brand.description}
-              className={field}
+              className={`${field} md:col-span-2`}
             />
             <label className="flex items-center gap-2 text-sm">
               <input

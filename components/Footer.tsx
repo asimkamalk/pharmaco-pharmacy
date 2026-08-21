@@ -3,8 +3,9 @@ import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import Container from "./Container";
 import Logo from "./Logo";
 import SocialMedia from "./SocialMedia";
-import { headerData, categoriesData } from "@/constants/data";
-import { siteConfig } from "@/constants/site";
+import { headerData } from "@/constants/data";
+import { getCategories } from "@/lib/products";
+import { getSiteConfig } from "@/lib/site";
 
 const customerServiceLinks = [
   { title: "Contact Us", href: "/contact" },
@@ -14,7 +15,12 @@ const customerServiceLinks = [
   { title: "Terms & Conditions", href: "/terms" },
 ];
 
-const Footer = () => {
+const Footer = async () => {
+  const [siteConfig, categories] = await Promise.all([
+    getSiteConfig(),
+    getCategories(),
+  ]);
+
   return (
     <footer className="border-t border-black/10 bg-white">
       <Container>
@@ -56,7 +62,7 @@ const Footer = () => {
               Categories
             </h3>
             <ul className="space-y-2.5">
-              {categoriesData.slice(0, 6).map((category) => (
+              {categories.slice(0, 6).map((category) => (
                 <li key={category.id}>
                   <Link
                     href={`/shop?category=${category.slug}`}

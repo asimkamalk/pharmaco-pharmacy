@@ -146,6 +146,85 @@ async function main() {
     },
   });
 
+  const { defaultSiteConfig } = await import("../constants/site");
+  const d = defaultSiteConfig;
+
+  await prisma.siteSettings.upsert({
+    where: { id: "default" },
+    update: {},
+    create: {
+      id: "default",
+      name: d.name,
+      shortName: d.shortName,
+      tagline: d.tagline,
+      description: d.description,
+      area: d.location.area,
+      city: d.location.city,
+      country: d.location.country,
+      address: d.location.address,
+      phone: d.contact.phone,
+      whatsapp: d.contact.whatsapp,
+      email: d.contact.email,
+      openingHours: d.contact.openingHours,
+      deliveryStandardFee: d.delivery.standardFee,
+      freeDeliveryAbove: d.delivery.freeDeliveryAbove,
+      deliveryEstimate: d.delivery.estimate,
+      bankName: d.payments.bankTransfer.bankName,
+      bankAccountTitle: d.payments.bankTransfer.accountTitle,
+      bankAccountNumber: d.payments.bankTransfer.accountNumber,
+      bankIban: d.payments.bankTransfer.iban,
+      easyPaisaTitle: d.payments.easyPaisa.accountTitle,
+      easyPaisaNumber: d.payments.easyPaisa.mobileNumber,
+      jazzCashTitle: d.payments.jazzCash.accountTitle,
+      jazzCashNumber: d.payments.jazzCash.mobileNumber,
+      mapEmbedUrl: d.map.embedUrl,
+      mapLinkUrl: d.map.linkUrl,
+      logoUrl: d.branding.logoUrl,
+      facebookUrl: d.social.facebook,
+      instagramUrl: d.social.instagram,
+      tiktokUrl: d.social.tiktok,
+      twitterUrl: d.social.twitter,
+      seoTitle: d.seo.title,
+      seoDescription: d.seo.description,
+      heroEyebrow: d.home.heroEyebrow,
+      heroHeadline: d.home.heroHeadline,
+      heroSubcopy: d.home.heroSubcopy,
+      heroCtaPrimaryLabel: d.home.heroCtaPrimaryLabel,
+      heroCtaPrimaryHref: d.home.heroCtaPrimaryHref,
+      heroCtaSecondaryLabel: d.home.heroCtaSecondaryLabel,
+      heroCtaSecondaryHref: d.home.heroCtaSecondaryHref,
+      promoHeadline: d.home.promoHeadline,
+      promoSubcopy: d.home.promoSubcopy,
+      whyChooseJson: JSON.stringify(d.home.whyChoose),
+    },
+  });
+
+  const cmsPages = [
+    {
+      slug: "about",
+      title: `About ${d.name}`,
+      bodyHtml: `<p>${d.name} is a community pharmacy based in ${d.location.area}, ${d.location.city}. We provide genuine medicines, healthcare products and wellness essentials with pharmacist support.</p><h2>How we work</h2><p>Orders are reviewed by licensed pharmacists. Prescription medicines require a valid prescription at checkout.</p>`,
+    },
+    {
+      slug: "privacy",
+      title: "Privacy Policy",
+      bodyHtml: `<p>This privacy policy explains how ${d.name} collects and uses personal information when you shop with us online or in store.</p><p>Replace this content with your final legal privacy policy before going live.</p>`,
+    },
+    {
+      slug: "terms",
+      title: "Terms & Conditions",
+      bodyHtml: `<p>These terms govern your use of the ${d.name} website and online ordering services.</p><p>Replace this content with your final terms and conditions before going live.</p>`,
+    },
+  ];
+
+  for (const page of cmsPages) {
+    await prisma.cmsPage.upsert({
+      where: { slug: page.slug },
+      update: {},
+      create: page,
+    });
+  }
+
   console.log("Seed complete.");
   console.log(`Admin login: ${adminEmail} / ${adminPassword}`);
 }
