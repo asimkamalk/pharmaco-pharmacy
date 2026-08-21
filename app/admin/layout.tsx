@@ -8,7 +8,8 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const { user } = await requireAdmin();
-  const { pendingCount, orders } = await getPendingOrderNotifications();
+  const { pendingCount, rxReviewCount, attentionCount, orders } =
+    await getPendingOrderNotifications();
 
   return (
     <AdminShell
@@ -17,6 +18,8 @@ export default async function AdminLayout({
         email: user.email,
       }}
       pendingCount={pendingCount}
+      rxReviewCount={rxReviewCount}
+      attentionCount={attentionCount}
       notifications={orders}
     >
       {children}

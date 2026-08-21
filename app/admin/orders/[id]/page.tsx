@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminFlash from "@/components/admin/AdminFlash";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import OrderStatusForm from "@/components/admin/OrderStatusForm";
+import PrescriptionReview from "@/components/admin/PrescriptionReview";
 import { getOrderById } from "@/lib/orders";
 import { formatPkDateTime } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
@@ -10,10 +12,12 @@ export const metadata = { title: "Order Detail · Admin" };
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }
 
-const AdminOrderDetailPage = async ({ params }: PageProps) => {
+const AdminOrderDetailPage = async ({ params, searchParams }: PageProps) => {
   const { id } = await params;
+  const { saved, error } = await searchParams;
   const order = await getOrderById(id);
   if (!order) notFound();
 
@@ -22,6 +26,12 @@ const AdminOrderDetailPage = async ({ params }: PageProps) => {
 
   return (
     <div className="space-y-6">
+      <AdminFlash
+        saved={saved}
+        error={error}
+        savedMessage="Prescription review saved."
+      />
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link
@@ -92,13 +102,20 @@ const AdminOrderDetailPage = async ({ params }: PageProps) => {
           {order.paymentReference && (
             <p className="mt-2 text-sm">Ref: {order.paymentReference}</p>
           )}
-          {order.prescriptionReference && (
-            <p className="mt-2 text-sm">
-              Rx: {order.prescriptionReference}
-            </p>
-          )}
         </section>
       </div>
+
+      {(order.prescriptionStatus ?? "not_required") !== "not_required" && (
+        <PrescriptionReview
+          orderId={order.id}
+          status={order.prescriptionStatus ?? "pending_review"}
+          url={order.prescriptionUrl}
+          fileName={order.prescriptionFileName}
+          mimeType={order.prescriptionMimeType}
+          reference={order.prescriptionReference}
+          adminNote={order.prescriptionAdminNote}
+        />
+      )}
 
       <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
         <h2 className="mb-4 font-semibold text-darkColor">Line items</h2>
@@ -117,6 +134,7 @@ const AdminOrderDetailPage = async ({ params }: PageProps) => {
                     SKU {item.sku} · Qty {item.quantity} · Cost{" "}
                     {formatPrice(item.purchasePrice ?? 0)} · Sell{" "}
                     {formatPrice(item.unitPrice)}
+                    {item.requiresPrescription ? " · Rx" : ""}
                   </p>
                 </div>
                 <div className="text-right">

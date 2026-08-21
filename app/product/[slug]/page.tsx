@@ -207,8 +207,8 @@ const ProductPage = async ({ params }: ProductPageProps) => {
                     Prescription Required
                   </p>
                   <p className="mt-0.5 text-lightColor">
-                    A valid prescription must be provided during checkout
-                    before this order can be completed.
+                    A valid prescription photo or PDF must be uploaded at
+                    checkout for pharmacist verification.
                   </p>
                 </div>
               </div>

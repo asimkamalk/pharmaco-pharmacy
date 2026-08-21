@@ -11,6 +11,7 @@ import type {
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
+  PrescriptionStatus,
 } from "@/types";
 
 function createOrderNumber() {
@@ -38,6 +39,9 @@ export interface PlaceOrderInput {
   paymentMethod: PaymentMethod;
   paymentReference?: string;
   prescriptionReference?: string;
+  prescriptionUrl?: string;
+  prescriptionFileName?: string;
+  prescriptionMimeType?: string;
   orderNotes?: string;
   items: { productId: string; quantity: number }[];
 }
@@ -51,6 +55,11 @@ function mapDbOrder(order: {
   paymentStatus: string;
   paymentReference: string | null;
   prescriptionReference: string | null;
+  prescriptionUrl: string | null;
+  prescriptionFileName: string | null;
+  prescriptionMimeType: string | null;
+  prescriptionStatus: string;
+  prescriptionAdminNote: string | null;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
@@ -88,6 +97,11 @@ function mapDbOrder(order: {
     paymentStatus: order.paymentStatus as PaymentStatus,
     paymentReference: order.paymentReference ?? undefined,
     prescriptionReference: order.prescriptionReference ?? undefined,
+    prescriptionUrl: order.prescriptionUrl ?? undefined,
+    prescriptionFileName: order.prescriptionFileName ?? undefined,
+    prescriptionMimeType: order.prescriptionMimeType ?? undefined,
+    prescriptionStatus: order.prescriptionStatus as PrescriptionStatus,
+    prescriptionAdminNote: order.prescriptionAdminNote ?? undefined,
     customerName: order.customerName,
     customerPhone: order.customerPhone,
     customerEmail: order.customerEmail,
@@ -162,8 +176,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   const requiresPrescription = lineItems.some(
     (line) => line.product.requiresPrescription,
   );
-  if (requiresPrescription && !input.prescriptionReference?.trim()) {
-    throw new Error("Prescription reference is required");
+  if (requiresPrescription && !input.prescriptionUrl?.trim()) {
+    throw new Error("Please upload a clear photo or PDF of your prescription");
   }
   if (
     input.paymentMethod !== "cash_on_delivery" &&
@@ -216,6 +230,12 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
         paymentStatus: paymentStatusFor(input.paymentMethod),
         paymentReference: input.paymentReference?.trim() || null,
         prescriptionReference: input.prescriptionReference?.trim() || null,
+        prescriptionUrl: input.prescriptionUrl?.trim() || null,
+        prescriptionFileName: input.prescriptionFileName?.trim() || null,
+        prescriptionMimeType: input.prescriptionMimeType?.trim() || null,
+        prescriptionStatus: requiresPrescription
+          ? "pending_review"
+          : "not_required",
         customerName: input.address.fullName,
         customerPhone: input.address.phone,
         customerEmail: email,

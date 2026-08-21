@@ -26,6 +26,11 @@ const accountLinks = [
     title: "Orders",
     description: "Track order status and payment details",
   },
+  {
+    href: "/account/prescription-requests",
+    title: "Prescription requests",
+    description: "Track Order-by-Prescription submissions",
+  },
 ];
 
 const AccountPage = async () => {
@@ -45,7 +50,7 @@ const AccountPage = async () => {
           your profile, delivery addresses and orders.
         </p>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {accountLinks.map((link) => (
             <Link
               key={link.href}

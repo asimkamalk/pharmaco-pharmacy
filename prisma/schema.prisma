@@ -29,6 +29,7 @@ model User {
   sessions      Session[]
   orders        Order[]
   addresses     Address[]
+  prescriptionRequests PrescriptionRequest[]
 }
 
 model Account {
@@ -170,6 +171,13 @@ model Order {
   paymentStatus          String      @default("not_required")
   paymentReference       String?
   prescriptionReference  String?
+  /** Uploaded prescription file (image or PDF) */
+  prescriptionUrl        String?
+  prescriptionFileName   String?
+  prescriptionMimeType   String?
+  /** not_required | pending_review | approved | rejected */
+  prescriptionStatus     String   @default("not_required")
+  prescriptionAdminNote  String?
   customerName           String
   customerPhone          String
   customerEmail          String
@@ -189,6 +197,39 @@ model Order {
   updatedAt              DateTime    @updatedAt
   user                   User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   items                  OrderItem[]
+  prescriptionRequest    PrescriptionRequest?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+/** Customer submitted a prescription for the pharmacy to build an order */
+model PrescriptionRequest {
+  id                   String   @id @default(cuid())
+  requestNumber        String   @unique
+  userId               String?
+  /** pending | in_progress | fulfilled | rejected | cancelled */
+  status               String   @default("pending")
+  customerName         String
+  customerPhone        String
+  customerEmail        String?
+  addressLabel         String   @default("home")
+  addressCustomLabel   String?
+  addressLine          String
+  area                 String
+  city                 String
+  prescriptionUrl      String
+  prescriptionFileName String?
+  prescriptionMimeType String?
+  /** What the customer says they need, e.g. "I need Augmentin and Panadol" */
+  medicinesNote        String
+  adminNote            String?
+  orderId              String?  @unique
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order                Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([createdAt])
