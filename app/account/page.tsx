@@ -23,8 +23,8 @@ const accountLinks = [
   },
   {
     href: "/account/orders",
-    title: "Orders",
-    description: "Track order status and payment details",
+    title: "Order history",
+    description: "Track past orders and reorder favourite items",
   },
   {
     href: "/account/prescription-requests",
