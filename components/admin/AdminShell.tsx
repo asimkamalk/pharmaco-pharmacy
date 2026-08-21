@@ -146,7 +146,7 @@ const AdminShell = ({
               </p>
             </div>
 
-            <div className="relative flex-1 overflow-y-auto px-3 py-4">
+            <div className="admin-scrollbar relative flex-1 overflow-y-auto px-3 py-4">
               <NavLinks pathname={pathname} />
             </div>
 
@@ -235,7 +235,7 @@ const AdminShell = ({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 py-4">
+            <div className="admin-scrollbar-light flex-1 overflow-y-auto px-3 py-4">
               <NavLinks
                 pathname={pathname}
                 variant="drawer"
