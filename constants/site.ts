@@ -85,12 +85,12 @@ export const defaultSiteConfig: SiteConfig = {
     area: "Hayatabad",
     city: "Peshawar",
     country: "Pakistan",
-    address: "[Street Address], Hayatabad, Peshawar",
+    address: "Shop 36, Sector D5 Phase 1 Hayatabad, Peshawar, 25100, Pakistan",
   },
   contact: {
-    phone: "+92 XXX XXXXXXX",
-    whatsapp: "+92 XXX XXXXXXX",
-    email: "info@example.com",
+    phone: "+92 332 7373354",
+    whatsapp: "+92 332 7373354",
+    email: "info@pharmaco.pk",
     openingHours: "Mon – Sun: 9:00 AM – 11:00 PM",
   },
   delivery: {
@@ -107,18 +107,17 @@ export const defaultSiteConfig: SiteConfig = {
     },
     easyPaisa: {
       accountTitle: "Pharmaco Pharmacy",
-      mobileNumber: "03XX XXXXXXX",
+      mobileNumber: "0332 7373354",
     },
     jazzCash: {
       accountTitle: "Pharmaco Pharmacy",
-      mobileNumber: "03XX XXXXXXX",
+      mobileNumber: "0332 7373354",
     },
   },
   map: {
     embedUrl:
-      "https://www.google.com/maps?q=Hayatabad,+Peshawar,+Pakistan&output=embed",
-    linkUrl:
-      "https://www.google.com/maps/search/?api=1&query=Hayatabad+Peshawar+Pakistan",
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3308.685187864989!2d71.42378977908297!3d33.97493020404854!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38d911005f142e31%3A0xb08a8f5515a8c1ad!2sPharmaco%20Pharmacy!5e0!3m2!1sen!2sus!4v1787342592711!5m2!1sen!2sus",
+    linkUrl: "https://maps.app.goo.gl/RRzaApoHHqsozbdy8",
   },
   branding: {
     logoUrl: "/images/pharmaco-logo-text.png",
@@ -130,9 +129,10 @@ export const defaultSiteConfig: SiteConfig = {
     twitter: "https://x.com/",
   },
   seo: {
-    title: "Pharmaco Pharmacy | Hayatabad, Peshawar",
+    title:
+      "Pharmaco Pharmacy | Medicines & Healthcare in Hayatabad, Peshawar",
     description:
-      "Medicines, healthcare products, wellness essentials and personal care items from a trusted pharmacy in Hayatabad, Peshawar.",
+      "Shop genuine medicines, healthcare products and wellness essentials at Pharmaco Pharmacy — Shop 36, Sector D5 Phase 1 Hayatabad, Peshawar. Call +92 332 7373354.",
   },
   home: {
     heroEyebrow: "",

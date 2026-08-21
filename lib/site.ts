@@ -144,10 +144,7 @@ export function mapSettingsToConfig(row: {
 export async function getSiteConfig(): Promise<SiteConfig> {
   noStore();
   try {
-    const row = await prisma.siteSettings.findUnique({
-      where: { id: "default" },
-    });
-    if (!row) return defaultSiteConfig;
+    const row = await ensureSiteSettings();
     return mapSettingsToConfig(row);
   } catch {
     return defaultSiteConfig;
@@ -169,56 +166,88 @@ export async function ensureSiteSettings() {
   const existing = await prisma.siteSettings.findUnique({
     where: { id: "default" },
   });
-  if (existing) return existing;
-
   const d = defaultSiteConfig;
-  return prisma.siteSettings.create({
+
+  if (!existing) {
+    return prisma.siteSettings.create({
+      data: {
+        id: "default",
+        name: d.name,
+        shortName: d.shortName,
+        tagline: d.tagline,
+        description: d.description,
+        area: d.location.area,
+        city: d.location.city,
+        country: d.location.country,
+        address: d.location.address,
+        phone: d.contact.phone,
+        whatsapp: d.contact.whatsapp,
+        email: d.contact.email,
+        openingHours: d.contact.openingHours,
+        deliveryStandardFee: d.delivery.standardFee,
+        freeDeliveryAbove: d.delivery.freeDeliveryAbove,
+        deliveryEstimate: d.delivery.estimate,
+        bankName: d.payments.bankTransfer.bankName,
+        bankAccountTitle: d.payments.bankTransfer.accountTitle,
+        bankAccountNumber: d.payments.bankTransfer.accountNumber,
+        bankIban: d.payments.bankTransfer.iban,
+        easyPaisaTitle: d.payments.easyPaisa.accountTitle,
+        easyPaisaNumber: d.payments.easyPaisa.mobileNumber,
+        jazzCashTitle: d.payments.jazzCash.accountTitle,
+        jazzCashNumber: d.payments.jazzCash.mobileNumber,
+        mapEmbedUrl: d.map.embedUrl,
+        mapLinkUrl: d.map.linkUrl,
+        logoUrl: d.branding.logoUrl,
+        facebookUrl: d.social.facebook,
+        instagramUrl: d.social.instagram,
+        tiktokUrl: d.social.tiktok,
+        twitterUrl: d.social.twitter,
+        seoTitle: d.seo.title,
+        seoDescription: d.seo.description,
+        heroEyebrow: d.home.heroEyebrow,
+        heroHeadline: d.home.heroHeadline,
+        heroSubcopy: d.home.heroSubcopy,
+        heroCtaPrimaryLabel: d.home.heroCtaPrimaryLabel,
+        heroCtaPrimaryHref: d.home.heroCtaPrimaryHref,
+        heroCtaSecondaryLabel: d.home.heroCtaSecondaryLabel,
+        heroCtaSecondaryHref: d.home.heroCtaSecondaryHref,
+        heroBackgroundUrl: d.home.heroBackgroundUrl,
+        heroImageUrl: d.home.heroImageUrl,
+        promoHeadline: d.home.promoHeadline,
+        promoSubcopy: d.home.promoSubcopy,
+        whyChooseJson: JSON.stringify(d.home.whyChoose),
+      },
+    });
+  }
+
+  // Backfill NAP / map / SEO when still on placeholder values
+  const needsNapUpdate =
+    existing.address.includes("[") ||
+    existing.phone.includes("XXX") ||
+    existing.email.includes("example.com") ||
+    !existing.mapLinkUrl.includes("maps.app.goo.gl/RRzaApoHHqsozbdy8") ||
+    !existing.mapEmbedUrl.includes("0x38d911005f142e31");
+
+  if (!needsNapUpdate) return existing;
+
+  return prisma.siteSettings.update({
+    where: { id: "default" },
     data: {
-      id: "default",
-      name: d.name,
-      shortName: d.shortName,
-      tagline: d.tagline,
-      description: d.description,
-      area: d.location.area,
-      city: d.location.city,
-      country: d.location.country,
       address: d.location.address,
       phone: d.contact.phone,
       whatsapp: d.contact.whatsapp,
-      email: d.contact.email,
-      openingHours: d.contact.openingHours,
-      deliveryStandardFee: d.delivery.standardFee,
-      freeDeliveryAbove: d.delivery.freeDeliveryAbove,
-      deliveryEstimate: d.delivery.estimate,
-      bankName: d.payments.bankTransfer.bankName,
-      bankAccountTitle: d.payments.bankTransfer.accountTitle,
-      bankAccountNumber: d.payments.bankTransfer.accountNumber,
-      bankIban: d.payments.bankTransfer.iban,
-      easyPaisaTitle: d.payments.easyPaisa.accountTitle,
-      easyPaisaNumber: d.payments.easyPaisa.mobileNumber,
-      jazzCashTitle: d.payments.jazzCash.accountTitle,
-      jazzCashNumber: d.payments.jazzCash.mobileNumber,
+      email:
+        existing.email.includes("example.com") ? d.contact.email : existing.email,
       mapEmbedUrl: d.map.embedUrl,
       mapLinkUrl: d.map.linkUrl,
-      logoUrl: d.branding.logoUrl,
-      facebookUrl: d.social.facebook,
-      instagramUrl: d.social.instagram,
-      tiktokUrl: d.social.tiktok,
-      twitterUrl: d.social.twitter,
       seoTitle: d.seo.title,
       seoDescription: d.seo.description,
-      heroEyebrow: d.home.heroEyebrow,
-      heroHeadline: d.home.heroHeadline,
-      heroSubcopy: d.home.heroSubcopy,
-      heroCtaPrimaryLabel: d.home.heroCtaPrimaryLabel,
-      heroCtaPrimaryHref: d.home.heroCtaPrimaryHref,
-      heroCtaSecondaryLabel: d.home.heroCtaSecondaryLabel,
-      heroCtaSecondaryHref: d.home.heroCtaSecondaryHref,
-      heroBackgroundUrl: d.home.heroBackgroundUrl,
-      heroImageUrl: d.home.heroImageUrl,
-      promoHeadline: d.home.promoHeadline,
-      promoSubcopy: d.home.promoSubcopy,
-      whyChooseJson: JSON.stringify(d.home.whyChoose),
+      easyPaisaNumber: existing.easyPaisaNumber.includes("X")
+        ? d.payments.easyPaisa.mobileNumber
+        : existing.easyPaisaNumber,
+      jazzCashNumber: existing.jazzCashNumber.includes("X")
+        ? d.payments.jazzCash.mobileNumber
+        : existing.jazzCashNumber,
     },
   });
 }
