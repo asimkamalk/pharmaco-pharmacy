@@ -4,7 +4,6 @@ import AddToCartButton from "./AddToCartButton";
 import AddToWishlistButton from "./AddToWishlistButton";
 import PriceView from "./PriceView";
 import StarRating from "./StarRating";
-import { categoriesData } from "@/constants/data";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -12,9 +11,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const category = categoriesData.find(
-    (item) => item.slug === product.categorySlug,
-  );
+  const categoryTitle = product.categoryTitle;
   const outOfStock = product.stock <= 0;
 
   return (
@@ -61,12 +58,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        {category && (
+        {categoryTitle && (
           <Link
-            href={`/shop?category=${category.slug}`}
+            href={`/shop?category=${product.categorySlug}`}
             className="text-xs font-medium uppercase tracking-wide text-shop_light_green transition-colors duration-200 hover:text-shop_dark_green"
           >
-            {category.title}
+            {categoryTitle}
           </Link>
         )}
 

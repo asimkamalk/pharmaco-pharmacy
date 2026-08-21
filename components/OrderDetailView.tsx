@@ -1,15 +1,11 @@
-"use client";
-
-import { use } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Package } from "lucide-react";
+import { redirect } from "next/navigation";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-import { useOrders } from "@/hooks/useOrders";
-import { useIsHydrated } from "@/hooks";
-import { getAddressLabelText } from "@/hooks/useAddresses";
+import { auth } from "@/auth";
+import { getOrderById } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
 import type { OrderStatus, PaymentMethod } from "@/types";
 
@@ -30,39 +26,40 @@ const paymentLabels: Record<PaymentMethod, string> = {
 };
 
 interface OrderDetailViewProps {
-  params: Promise<{ id: string }>;
+  orderId: string;
+  justConfirmed?: boolean;
 }
 
-const OrderDetailView = ({ params }: OrderDetailViewProps) => {
-  const { id } = use(params);
-  const searchParams = useSearchParams();
-  const justConfirmed = searchParams.get("confirmed") === "1";
-  const isHydrated = useIsHydrated();
-  const order = useOrders((state) =>
-    state.orders.find((item) => item.id === id),
-  );
-
-  if (!isHydrated) {
-    return (
-      <Container className="py-10">
-        <div className="h-64 animate-pulse rounded-2xl bg-shop_light_bg" />
-      </Container>
-    );
+const OrderDetailView = async ({
+  orderId,
+  justConfirmed,
+}: OrderDetailViewProps) => {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect(`/sign-in?callbackUrl=/account/orders/${orderId}`);
   }
 
-  if (!order) {
+  const order = await getOrderById(orderId);
+
+  if (!order || (order.userId && order.userId !== session.user.id)) {
     return (
       <Container className="py-10">
         <EmptyState
           icon={Package}
           title="Order not found"
-          description="This order may have been cleared from this browser, or the link is incorrect."
+          description="This order may not belong to your account, or the link is incorrect."
           actionLabel="View all orders"
           actionHref="/account/orders"
         />
       </Container>
     );
   }
+
+  const addressLabel =
+    order.shippingAddress.label === "other"
+      ? order.shippingAddress.customLabel || "Other"
+      : order.shippingAddress.label.charAt(0).toUpperCase() +
+        order.shippingAddress.label.slice(1);
 
   return (
     <Container className="py-8 sm:py-10">
@@ -108,8 +105,8 @@ const OrderDetailView = ({ params }: OrderDetailViewProps) => {
               Items
             </h2>
             <ul className="space-y-3">
-              {order.items.map((item) => (
-                <li key={item.productId} className="flex gap-3">
+              {order.items.map((item, index) => (
+                <li key={`${item.productId}-${index}`} className="flex gap-3">
                   <Image
                     src={item.image}
                     alt={item.name}
@@ -149,7 +146,7 @@ const OrderDetailView = ({ params }: OrderDetailViewProps) => {
               {order.customerName}
             </p>
             <p className="mt-1 text-sm text-lightColor">
-              {getAddressLabelText(order.shippingAddress)}
+              {addressLabel}
               <br />
               {order.shippingAddress.addressLine}
               <br />
@@ -181,14 +178,6 @@ const OrderDetailView = ({ params }: OrderDetailViewProps) => {
                   <dt className="text-lightColor">Reference</dt>
                   <dd className="break-all font-medium text-darkColor">
                     {order.paymentReference}
-                  </dd>
-                </div>
-              )}
-              {order.prescriptionReference && (
-                <div className="flex justify-between gap-3">
-                  <dt className="text-lightColor">Prescription</dt>
-                  <dd className="break-all font-medium text-darkColor">
-                    {order.prescriptionReference}
                   </dd>
                 </div>
               )}

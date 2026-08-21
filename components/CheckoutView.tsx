@@ -17,8 +17,8 @@ import Container from "./Container";
 import EmptyState from "./EmptyState";
 import { useCart } from "@/hooks/useCart";
 import { useAddresses } from "@/hooks/useAddresses";
-import { useOrders } from "@/hooks/useOrders";
 import { useIsHydrated } from "@/hooks";
+import { placeOrder } from "@/lib/orders";
 import { checkoutFormSchema } from "@/lib/validations";
 import { formatPrice, getDiscountedPrice, cn } from "@/lib/utils";
 import { siteConfig } from "@/constants/site";
@@ -66,7 +66,6 @@ const CheckoutView = () => {
   const clearCart = useCart((state) => state.clearCart);
   const addresses = useAddresses((state) => state.addresses);
   const getDefault = useAddresses((state) => state.getDefault);
-  const placeOrder = useOrders((state) => state.placeOrder);
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
@@ -112,7 +111,7 @@ const CheckoutView = () => {
     (address) => address.id === activeAddressId,
   );
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const parsed = checkoutFormSchema.safeParse({
       addressId: activeAddressId,
       paymentMethod,
@@ -140,22 +139,39 @@ const CheckoutView = () => {
     setIsSubmitting(true);
     setErrors({});
 
-    const email =
-      selectedAddress.email?.trim() ||
-      `${selectedAddress.phone.replace(/\s+/g, "")}@customer.local`;
+    try {
+      const order = await placeOrder({
+        address: {
+          label: selectedAddress.label,
+          customLabel: selectedAddress.customLabel,
+          fullName: selectedAddress.fullName,
+          phone: selectedAddress.phone,
+          email: selectedAddress.email,
+          addressLine: selectedAddress.addressLine,
+          area: selectedAddress.area,
+          city: selectedAddress.city,
+        },
+        paymentMethod,
+        paymentReference: parsed.data.paymentReference,
+        prescriptionReference: parsed.data.prescriptionReference,
+        orderNotes: parsed.data.orderNotes,
+        items: items.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+      });
 
-    const order = placeOrder({
-      address: selectedAddress,
-      customerEmail: email,
-      paymentMethod,
-      paymentReference: parsed.data.paymentReference,
-      prescriptionReference: parsed.data.prescriptionReference,
-      orderNotes: parsed.data.orderNotes,
-      items,
-    });
-
-    clearCart();
-    router.push(`/account/orders/${order.id}?confirmed=1`);
+      clearCart();
+      router.push(`/account/orders/${order.id}?confirmed=1`);
+    } catch (error) {
+      setErrors({
+        form:
+          error instanceof Error
+            ? error.message
+            : "Could not place order. Please try again.",
+      });
+      setIsSubmitting(false);
+    }
   };
 
   if (!isHydrated) {
@@ -484,6 +500,11 @@ const CheckoutView = () => {
             >
               {isSubmitting ? "Placing order..." : "Place Order"}
             </button>
+            {errors.form && (
+              <p className="text-center text-xs text-shop_orange">
+                {errors.form}
+              </p>
+            )}
             <Link
               href="/cart"
               className="block text-center text-sm font-medium text-lightColor hover:text-shop_light_green"

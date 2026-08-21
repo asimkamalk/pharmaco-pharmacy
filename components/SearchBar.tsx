@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
@@ -13,15 +13,17 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { brandsData, categoriesData, productsData } from "@/constants/data";
 import { formatPrice, getDiscountedPrice } from "@/lib/utils";
-
-const MAX_SUGGESTIONS = 6;
+import type { Brand, Category, Product } from "@/types";
 
 const SearchBar = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -34,44 +36,33 @@ const SearchBar = () => {
     return () => document.removeEventListener("keydown", handleShortcut);
   }, []);
 
-  const trimmed = query.trim().toLowerCase();
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setProducts([]);
+      setCategories([]);
+      setBrands([]);
+      return;
+    }
 
-  const productResults = useMemo(() => {
-    if (!trimmed) return [];
-    return productsData
-      .filter((product) => {
-        const category = categoriesData.find(
-          (c) => c.slug === product.categorySlug,
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/catalog/search?q=${encodeURIComponent(trimmed)}`,
         );
-        const brand = brandsData.find((b) => b.slug === product.brandSlug);
-        const haystack = [
-          product.name,
-          product.genericName,
-          product.manufacturer,
-          category?.title,
-          brand?.title,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return trimmed.split(/\s+/).every((term) => haystack.includes(term));
-      })
-      .slice(0, MAX_SUGGESTIONS);
-  }, [trimmed]);
+        if (!response.ok) return;
+        const data = await response.json();
+        setProducts(data.products ?? []);
+        setCategories(data.categories ?? []);
+        setBrands(data.brands ?? []);
+      } finally {
+        setLoading(false);
+      }
+    }, 200);
 
-  const categoryResults = useMemo(() => {
-    if (!trimmed) return [];
-    return categoriesData
-      .filter((category) => category.title.toLowerCase().includes(trimmed))
-      .slice(0, 3);
-  }, [trimmed]);
-
-  const brandResults = useMemo(() => {
-    if (!trimmed) return [];
-    return brandsData
-      .filter((brand) => brand.title.toLowerCase().includes(trimmed))
-      .slice(0, 3);
-  }, [trimmed]);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const navigate = (href: string) => {
     setOpen(false);
@@ -82,116 +73,86 @@ const SearchBar = () => {
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
+        className="flex h-10 w-full items-center gap-2 rounded-full border border-black/10 bg-shop_light_bg px-3 text-left text-sm text-lightColor transition-colors hover:border-shop_light_green/40"
         aria-label="Search products"
-        className="inline-flex items-center justify-center"
       >
-        <Search className="h-5 w-5 transition-colors duration-200 hover:text-shop_light_green" />
+        <Search className="h-4 w-4 shrink-0" />
+        <span className="flex-1 truncate">Search medicines, brands…</span>
+        <kbd className="hidden rounded border border-black/10 bg-white px-1.5 py-0.5 text-[10px] font-medium sm:inline">
+          Ctrl K
+        </kbd>
       </button>
 
-      <CommandDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Search products"
-        description="Search medicines and health products"
-      >
+      <CommandDialog open={open} onOpenChange={setOpen}>
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Search medicines, brands, categories..."
+            placeholder="Search products, categories, brands…"
             value={query}
             onValueChange={setQuery}
           />
           <CommandList>
-            {trimmed ? (
-              <>
-                <CommandEmpty>
-                  No products found for &ldquo;{query.trim()}&rdquo;. Try a
-                  different name or brand.
-                </CommandEmpty>
+            <CommandEmpty>
+              {loading ? "Searching…" : "No results found."}
+            </CommandEmpty>
 
-                {productResults.length > 0 && (
-                  <CommandGroup heading="Products">
-                    {productResults.map((product) => (
-                      <CommandItem
-                        key={product.id}
-                        value={product.slug}
-                        onSelect={() => navigate(`/product/${product.slug}`)}
-                      >
-                        <Image
-                          src={product.images[0]}
-                          alt=""
-                          width={32}
-                          height={32}
-                          className="h-8 w-8 rounded-md border object-cover"
-                        />
-                        <span className="flex-1 truncate">{product.name}</span>
-                        <span className="font-semibold text-shop_dark_green">
-                          {formatPrice(
-                            getDiscountedPrice(product.price, product.discount),
-                          )}
-                        </span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
+            {products.length > 0 && (
+              <CommandGroup heading="Products">
+                {products.map((product) => (
+                  <CommandItem
+                    key={product.id}
+                    value={product.slug}
+                    onSelect={() => navigate(`/product/${product.slug}`)}
+                    className="gap-3"
+                  >
+                    <Image
+                      src={product.images[0]}
+                      alt=""
+                      width={36}
+                      height={36}
+                      className="h-9 w-9 rounded object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {product.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatPrice(
+                          getDiscountedPrice(product.price, product.discount),
+                        )}
+                      </p>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
 
-                {categoryResults.length > 0 && (
-                  <CommandGroup heading="Categories">
-                    {categoryResults.map((category) => (
-                      <CommandItem
-                        key={category.id}
-                        value={`category-${category.slug}`}
-                        onSelect={() =>
-                          navigate(`/shop?category=${category.slug}`)
-                        }
-                      >
-                        <span className="flex-1 truncate">
-                          {category.title}
-                        </span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-
-                {brandResults.length > 0 && (
-                  <CommandGroup heading="Brands">
-                    {brandResults.map((brand) => (
-                      <CommandItem
-                        key={brand.id}
-                        value={`brand-${brand.slug}`}
-                        onSelect={() => navigate(`/shop?brand=${brand.slug}`)}
-                      >
-                        <span className="flex-1 truncate">{brand.title}</span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-
-                {productResults.length > 0 && (
-                  <CommandGroup>
-                    <CommandItem
-                      value={`view-all-${trimmed}`}
-                      onSelect={() =>
-                        navigate(`/shop?q=${encodeURIComponent(query.trim())}`)
-                      }
-                    >
-                      <Search />
-                      <span>
-                        View all results for &ldquo;{query.trim()}&rdquo;
-                      </span>
-                    </CommandItem>
-                  </CommandGroup>
-                )}
-              </>
-            ) : (
-              <CommandGroup heading="Popular categories">
-                {categoriesData.slice(0, 6).map((category) => (
+            {categories.length > 0 && (
+              <CommandGroup heading="Categories">
+                {categories.map((category) => (
                   <CommandItem
                     key={category.id}
-                    value={`category-${category.slug}`}
-                    onSelect={() => navigate(`/shop?category=${category.slug}`)}
+                    value={`cat-${category.slug}`}
+                    onSelect={() =>
+                      navigate(`/shop?category=${category.slug}`)
+                    }
                   >
-                    <span>{category.title}</span>
+                    {category.title}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {brands.length > 0 && (
+              <CommandGroup heading="Brands">
+                {brands.map((brand) => (
+                  <CommandItem
+                    key={brand.id}
+                    value={`brand-${brand.slug}`}
+                    onSelect={() => navigate(`/shop?brand=${brand.slug}`)}
+                  >
+                    {brand.title}
                   </CommandItem>
                 ))}
               </CommandGroup>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { headers } from "next/headers";
 
 import "./globals.css";
+import AuthSessionProvider from "@/components/AuthSessionProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import AuthSessionProvider from "@/components/AuthSessionProvider";
 import { auth } from "@/auth";
 
 const poppins = Poppins({
@@ -37,14 +38,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const isAdmin = pathname.startsWith("/admin");
 
   return (
     <html lang="en" className={poppins.variable}>
       <body className="font-poppins antialiased">
         <AuthSessionProvider session={session}>
-          <Header />
+          {!isAdmin && <Header />}
           {children}
-          <Footer />
+          {!isAdmin && <Footer />}
         </AuthSessionProvider>
       </body>
     </html>

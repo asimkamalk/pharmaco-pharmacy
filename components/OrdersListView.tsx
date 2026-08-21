@@ -1,14 +1,12 @@
-"use client";
-
 import Link from "next/link";
 import { Package } from "lucide-react";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-import { useOrders } from "@/hooks/useOrders";
-import { useIsHydrated } from "@/hooks";
+import { auth } from "@/auth";
+import { getOrdersForUser } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
-import { getAddressLabelText } from "@/hooks/useAddresses";
 import type { OrderStatus, PaymentMethod } from "@/types";
+import { redirect } from "next/navigation";
 
 const statusStyles: Record<OrderStatus, string> = {
   pending: "bg-shop_orange/15 text-shop_orange",
@@ -26,18 +24,11 @@ const paymentLabels: Record<PaymentMethod, string> = {
   jazzcash: "JazzCash",
 };
 
-const OrdersListView = () => {
-  const isHydrated = useIsHydrated();
-  const orders = useOrders((state) => state.orders);
+const OrdersListView = async () => {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/sign-in?callbackUrl=/account/orders");
 
-  if (!isHydrated) {
-    return (
-      <Container className="py-10">
-        <div className="h-8 w-40 animate-pulse rounded bg-shop_light_bg" />
-        <div className="mt-6 h-48 animate-pulse rounded-2xl bg-shop_light_bg" />
-      </Container>
-    );
-  }
+  const orders = await getOrdersForUser(session.user.id);
 
   return (
     <Container className="py-8 sm:py-10">
@@ -77,7 +68,7 @@ const OrdersListView = () => {
                     <p className="mt-1 text-xs text-lightColor">
                       {new Date(order.createdAt).toLocaleString("en-PK")} ·{" "}
                       {paymentLabels[order.paymentMethod]} ·{" "}
-                      {getAddressLabelText(order.shippingAddress)}
+                      {order.shippingAddress.city}
                     </p>
                   </div>
                   <span
@@ -91,7 +82,7 @@ const OrdersListView = () => {
                     {order.items.length} item
                     {order.items.length === 1 ? "" : "s"}
                   </p>
-                  <p className="font-bold text-shop_dark_green">
+                  <p className="font-semibold text-shop_dark_green">
                     {formatPrice(order.grandTotal)}
                   </p>
                 </div>
