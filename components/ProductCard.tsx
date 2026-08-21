@@ -3,7 +3,6 @@ import Link from "next/link";
 import AddToCartButton from "./AddToCartButton";
 import AddToWishlistButton from "./AddToWishlistButton";
 import PriceView from "./PriceView";
-import StarRating from "./StarRating";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -75,10 +74,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {product.name}
           </Link>
         </h3>
-
-        {product.rating !== undefined && (
-          <StarRating rating={product.rating} reviewCount={product.reviewCount} />
-        )}
 
         <div className="mt-auto space-y-3 pt-1">
           <PriceView price={product.price} discount={product.discount} />
