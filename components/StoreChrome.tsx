@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 /**
  * Shows store Header/Footer on all routes except /admin.
@@ -26,8 +27,11 @@ export default function StoreChrome({
   return (
     <>
       {header}
-      {children}
-      {footer}
+      <div className="pb-[4.25rem] md:pb-0">
+        {children}
+        {footer}
+      </div>
+      <MobileBottomNav />
     </>
   );
 }

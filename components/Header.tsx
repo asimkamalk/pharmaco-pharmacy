@@ -23,8 +23,10 @@ const Header = async () => {
 
         <div className="flex shrink-0 items-center justify-end gap-2.5 sm:gap-3">
           <SearchBar />
-          <CartIcon />
-          <FavouriteButton />
+          <div className="hidden md:contents">
+            <CartIcon />
+            <FavouriteButton />
+          </div>
           <Signin initialUser={session?.user ?? null} />
         </div>
       </Container>
