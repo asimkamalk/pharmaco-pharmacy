@@ -11,11 +11,21 @@ const ALLOWED_TYPES: Record<string, string> = {
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
+/** Prefer Blob over File — FormData entries can fail `instanceof File` in Node. */
+export function getFormFile(formData: FormData, key: string): File | null {
+  const entry = formData.get(key);
+  if (typeof entry === "string" || entry == null) return null;
+  if (!("size" in entry) || !("arrayBuffer" in entry)) return null;
+  if (entry.size <= 0) return null;
+  return entry as File;
+}
+
 export async function saveUploadedImage(
-  file: File,
+  file: Blob,
   folder: "products" | "categories" | "brands" | "site" = "products",
 ): Promise<string> {
-  const extension = ALLOWED_TYPES[file.type];
+  const type = "type" in file ? String(file.type) : "";
+  const extension = ALLOWED_TYPES[type];
   if (!extension) {
     throw new Error("Only JPG, PNG, WebP or GIF images are allowed");
   }

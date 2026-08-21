@@ -1,7 +1,8 @@
 import Link from "next/link";
+import AdminFlash from "@/components/admin/AdminFlash";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 import { saveSiteSettings } from "@/lib/actions/settings";
 import { ensureSiteSettings, mapSettingsToConfig } from "@/lib/site";
-import ImageUploadField from "@/components/admin/ImageUploadField";
 
 export const metadata = { title: "Site Settings · Admin" };
 
@@ -9,11 +10,11 @@ const field =
   "w-full rounded-lg border border-black/15 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-shop_light_green";
 
 interface PageProps {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }
 
 const AdminSettingsPage = async ({ searchParams }: PageProps) => {
-  const { saved } = await searchParams;
+  const { saved, error } = await searchParams;
   const row = await ensureSiteSettings();
   const site = mapSettingsToConfig(row);
 
@@ -35,15 +36,10 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
         </Link>
       </div>
 
-      {saved && (
-        <p className="rounded-lg border border-shop_light_green/30 bg-shop_light_green/10 px-4 py-2 text-sm text-shop_dark_green">
-          Settings saved.
-        </p>
-      )}
+      <AdminFlash saved={saved} error={error} savedMessage="Settings saved." />
 
       <form
         action={saveSiteSettings}
-        encType="multipart/form-data"
         className="space-y-8 rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:p-6"
       >
         <section className="space-y-3">
@@ -51,7 +47,12 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
           <div className="grid gap-3 md:grid-cols-2">
             <label className="space-y-1 text-sm">
               <span>Pharmacy name</span>
-              <input name="name" defaultValue={site.name} className={field} />
+              <input
+                name="name"
+                required
+                defaultValue={site.name}
+                className={field}
+              />
             </label>
             <label className="space-y-1 text-sm">
               <span>Short name</span>
@@ -104,7 +105,12 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
             ).map(([name, label, value]) => (
               <label key={name} className="space-y-1 text-sm">
                 <span>{label}</span>
-                <input name={name} defaultValue={value} className={field} />
+                <input
+                  name={name}
+                  required={name === "phone" || name === "email"}
+                  defaultValue={value}
+                  className={field}
+                />
               </label>
             ))}
           </div>

@@ -41,7 +41,7 @@ const field =
 
 const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
   return (
-    <form action={saveProduct} className="space-y-6" encType="multipart/form-data">
+    <form action={saveProduct} className="space-y-6">
       {product?.id && <input type="hidden" name="id" value={product.id} />}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

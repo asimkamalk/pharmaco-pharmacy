@@ -1,10 +1,16 @@
 import Link from "next/link";
+import AdminFlash from "@/components/admin/AdminFlash";
 import ProductForm from "@/components/admin/ProductForm";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Add Product · Admin" };
 
-const NewProductPage = async () => {
+interface PageProps {
+  searchParams: Promise<{ error?: string }>;
+}
+
+const NewProductPage = async ({ searchParams }: PageProps) => {
+  const { error } = await searchParams;
   const [categories, brands] = await Promise.all([
     prisma.category.findMany({
       where: { isActive: true },
@@ -29,6 +35,7 @@ const NewProductPage = async () => {
           ← Back
         </Link>
       </div>
+      <AdminFlash error={error} />
       <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:p-6">
         <ProductForm categories={categories} brands={brands} />
       </div>

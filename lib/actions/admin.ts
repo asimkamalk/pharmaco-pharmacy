@@ -1,12 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin";
+import { firstZodMessage, redirectWithFlash } from "@/lib/admin-flash";
 import { prisma } from "@/lib/prisma";
 import { sanitizeProductHtml } from "@/lib/sanitize";
-import { saveUploadedProductImage } from "@/lib/upload";
+import {
+  getFormFile,
+  saveUploadedImage,
+  saveUploadedProductImage,
+} from "@/lib/upload";
 import type { OrderStatus } from "@/types";
 
 function slugify(value: string) {
@@ -18,18 +22,18 @@ function slugify(value: string) {
 }
 
 const productSchema = z.object({
-  name: z.string().trim().min(2).max(200),
+  name: z.string().trim().min(2, "Name is required").max(200),
   slug: z.string().trim().min(2).max(200).optional(),
   description: z.string().trim().max(500).optional(),
   longDescription: z.string().max(100_000).optional(),
-  sku: z.string().trim().min(2).max(60),
-  purchasePrice: z.coerce.number().min(0),
-  price: z.coerce.number().min(0),
+  sku: z.string().trim().min(2, "SKU is required").max(60),
+  purchasePrice: z.coerce.number().min(0, "Purchase price is required"),
+  price: z.coerce.number().min(0, "Price is required"),
   discount: z.coerce.number().int().min(0).max(100),
-  stock: z.coerce.number().int().min(0),
-  categoryId: z.string().min(1),
-  brandId: z.string().min(1),
-  imageUrl: z.string().trim().min(1),
+  stock: z.coerce.number().int().min(0, "Stock is required"),
+  categoryId: z.string().min(1, "Category is required"),
+  brandId: z.string().min(1, "Brand is required"),
+  imageUrl: z.string().trim().min(1, "Product image is required"),
   requiresPrescription: z.coerce.boolean().optional(),
   isFeatured: z.coerce.boolean().optional(),
   isArchived: z.coerce.boolean().optional(),
@@ -43,9 +47,14 @@ function formBool(formData: FormData, key: string) {
   return formData.get(key) === "on" || formData.get(key) === "true";
 }
 
+function productFormPath(id: string) {
+  return id ? `/admin/products/${id}` : "/admin/products/new";
+}
+
 export async function saveProduct(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
+  const back = productFormPath(id);
 
   const parsed = productSchema.safeParse({
     name: formData.get("name"),
@@ -70,16 +79,29 @@ export async function saveProduct(formData: FormData) {
   });
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message || "Invalid product data");
+    redirectWithFlash(back, { error: firstZodMessage(parsed.error.issues) });
   }
 
   const data = parsed.data;
   const slug = data.slug?.trim() || slugify(data.name);
 
   let imageUrl = data.imageUrl;
-  const imageFile = formData.get("image");
-  if (imageFile instanceof File && imageFile.size > 0) {
-    imageUrl = await saveUploadedProductImage(imageFile);
+  try {
+    const imageFile = getFormFile(formData, "image");
+    if (imageFile) {
+      imageUrl = await saveUploadedProductImage(imageFile);
+    }
+  } catch (err) {
+    redirectWithFlash(back, {
+      error:
+        err instanceof Error ? err.message : "Could not upload the product image",
+    });
+  }
+
+  if (!imageUrl || imageUrl.includes("placeholder")) {
+    redirectWithFlash(back, {
+      error: "Please upload a product image",
+    });
   }
 
   const payload = {
@@ -103,27 +125,35 @@ export async function saveProduct(formData: FormData) {
     manufacturer: data.manufacturer || null,
   };
 
-  if (id) {
-    await prisma.product.update({
-      where: { id },
-      data: payload,
-    });
-    await prisma.productImage.deleteMany({ where: { productId: id } });
-    await prisma.productImage.create({
-      data: { productId: id, url: imageUrl, sortOrder: 0 },
-    });
-  } else {
-    const created = await prisma.product.create({ data: payload });
-    await prisma.productImage.create({
-      data: { productId: created.id, url: imageUrl, sortOrder: 0 },
-    });
+  try {
+    if (id) {
+      await prisma.product.update({
+        where: { id },
+        data: payload,
+      });
+      await prisma.productImage.deleteMany({ where: { productId: id } });
+      await prisma.productImage.create({
+        data: { productId: id, url: imageUrl, sortOrder: 0 },
+      });
+    } else {
+      const created = await prisma.product.create({ data: payload });
+      await prisma.productImage.create({
+        data: { productId: created.id, url: imageUrl, sortOrder: 0 },
+      });
+    }
+  } catch (err) {
+    const message =
+      err instanceof Error && err.message.includes("Unique constraint")
+        ? "A product with this SKU or slug already exists"
+        : "Could not save the product. Check required fields and try again.";
+    redirectWithFlash(back, { error: message });
   }
 
   revalidatePath("/admin/products");
   revalidatePath("/shop");
   revalidatePath("/");
   revalidatePath(`/product/${slug}`);
-  redirect("/admin/products");
+  redirectWithFlash("/admin/products", { saved: true });
 }
 
 export async function archiveProduct(id: string) {
@@ -146,30 +176,50 @@ export async function saveCategory(formData: FormData) {
     String(formData.get("image") ?? "").trim() ||
     String(formData.get("imageUrl") ?? "").trim() ||
     "/images/categories/placeholder.svg";
-  const imageFile = formData.get("imageFile");
-  if (imageFile instanceof File && imageFile.size > 0) {
-    const { saveUploadedImage } = await import("@/lib/upload");
-    image = await saveUploadedImage(imageFile, "categories");
+
+  try {
+    const imageFile = getFormFile(formData, "imageFile");
+    if (imageFile) {
+      image = await saveUploadedImage(imageFile, "categories");
+    }
+  } catch (err) {
+    redirectWithFlash("/admin/categories", {
+      error:
+        err instanceof Error
+          ? err.message
+          : "Could not upload the category image",
+    });
   }
+
   const isActive = formBool(formData, "isActive");
 
-  if (title.length < 2) throw new Error("Category title is required");
-
-  if (id) {
-    await prisma.category.update({
-      where: { id },
-      data: { title, slug, description, image, isActive },
+  if (title.length < 2) {
+    redirectWithFlash("/admin/categories", {
+      error: "Category title is required",
     });
-  } else {
-    await prisma.category.create({
-      data: { title, slug, description, image, isActive },
+  }
+
+  try {
+    if (id) {
+      await prisma.category.update({
+        where: { id },
+        data: { title, slug, description, image, isActive },
+      });
+    } else {
+      await prisma.category.create({
+        data: { title, slug, description, image, isActive },
+      });
+    }
+  } catch {
+    redirectWithFlash("/admin/categories", {
+      error: "Could not save category. Title/slug may already exist.",
     });
   }
 
   revalidatePath("/admin/categories");
   revalidatePath("/categories");
   revalidatePath("/");
-  redirect("/admin/categories");
+  redirectWithFlash("/admin/categories", { saved: true });
 }
 
 export async function saveBrand(formData: FormData) {
@@ -182,29 +232,45 @@ export async function saveBrand(formData: FormData) {
     String(formData.get("image") ?? "").trim() ||
     String(formData.get("imageUrl") ?? "").trim() ||
     "/images/brands/placeholder.svg";
-  const imageFile = formData.get("imageFile");
-  if (imageFile instanceof File && imageFile.size > 0) {
-    const { saveUploadedImage } = await import("@/lib/upload");
-    image = await saveUploadedImage(imageFile, "brands");
+
+  try {
+    const imageFile = getFormFile(formData, "imageFile");
+    if (imageFile) {
+      image = await saveUploadedImage(imageFile, "brands");
+    }
+  } catch (err) {
+    redirectWithFlash("/admin/brands", {
+      error:
+        err instanceof Error ? err.message : "Could not upload the brand image",
+    });
   }
+
   const isActive = formBool(formData, "isActive");
 
-  if (title.length < 2) throw new Error("Brand title is required");
+  if (title.length < 2) {
+    redirectWithFlash("/admin/brands", { error: "Brand title is required" });
+  }
 
-  if (id) {
-    await prisma.brand.update({
-      where: { id },
-      data: { title, slug, description, image, isActive },
-    });
-  } else {
-    await prisma.brand.create({
-      data: { title, slug, description, image, isActive },
+  try {
+    if (id) {
+      await prisma.brand.update({
+        where: { id },
+        data: { title, slug, description, image, isActive },
+      });
+    } else {
+      await prisma.brand.create({
+        data: { title, slug, description, image, isActive },
+      });
+    }
+  } catch {
+    redirectWithFlash("/admin/brands", {
+      error: "Could not save brand. Title/slug may already exist.",
     });
   }
 
   revalidatePath("/admin/brands");
   revalidatePath("/");
-  redirect("/admin/brands");
+  redirectWithFlash("/admin/brands", { saved: true });
 }
 
 export async function setOrderStatus(orderId: string, status: OrderStatus) {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminFlash from "@/components/admin/AdminFlash";
 import CmsPageForm from "@/components/admin/CmsPageForm";
 import { prisma } from "@/lib/prisma";
 
@@ -13,12 +14,12 @@ const titles: Record<string, string> = {
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }
 
 const AdminCmsPageEdit = async ({ params, searchParams }: PageProps) => {
   const { slug } = await params;
-  const { saved } = await searchParams;
+  const { saved, error } = await searchParams;
   if (!titles[slug]) notFound();
 
   const page = await prisma.cmsPage.findUnique({ where: { slug } });
@@ -39,11 +40,7 @@ const AdminCmsPageEdit = async ({ params, searchParams }: PageProps) => {
         </div>
       </div>
 
-      {saved && (
-        <p className="rounded-lg border border-shop_light_green/30 bg-shop_light_green/10 px-4 py-2 text-sm text-shop_dark_green">
-          Page saved.
-        </p>
-      )}
+      <AdminFlash saved={saved} error={error} savedMessage="Page saved." />
 
       <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:p-6">
         <CmsPageForm

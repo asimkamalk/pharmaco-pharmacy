@@ -66,6 +66,8 @@ export type SiteConfig = {
     heroCtaPrimaryHref: string;
     heroCtaSecondaryLabel: string;
     heroCtaSecondaryHref: string;
+    heroBackgroundUrl: string;
+    heroImageUrl: string;
     promoHeadline: string;
     promoSubcopy: string;
     whyChoose: WhyChooseItem[];
@@ -141,6 +143,8 @@ export const defaultSiteConfig: SiteConfig = {
     heroCtaPrimaryHref: "/shop",
     heroCtaSecondaryLabel: "Contact us",
     heroCtaSecondaryHref: "/contact",
+    heroBackgroundUrl: "",
+    heroImageUrl: "/images/pharmaco-logo.png",
     promoHeadline: "Free delivery on qualifying orders",
     promoSubcopy: "Pay with COD, bank transfer, EasyPaisa or JazzCash.",
     whyChoose: [

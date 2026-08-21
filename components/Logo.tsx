@@ -1,9 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { getSiteConfig } from "@/lib/site";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
 
-const Logo = async () => {
-  const site = await getSiteConfig();
+const Logo = () => {
+  const site = useSiteConfig();
 
   return (
     <Link
@@ -17,7 +19,7 @@ const Logo = async () => {
         width={1217}
         height={693}
         priority
-        sizes="(max-width: 640px) 160px, (max-width: 1024px) 200px, 240px"
+        sizes="(max-width: 640px) 140px, (max-width: 1024px) 180px, 200px"
         className="h-auto w-32 object-contain sm:w-36 lg:w-44 xl:w-48"
       />
     </Link>

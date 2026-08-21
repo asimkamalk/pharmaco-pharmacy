@@ -246,6 +246,10 @@ model SiteSettings {
   heroCtaPrimaryHref   String   @default("/shop")
   heroCtaSecondaryLabel String  @default("Contact us")
   heroCtaSecondaryHref String   @default("/contact")
+  /** Optional full-bleed hero background image */
+  heroBackgroundUrl    String   @default("")
+  /** Optional right-side hero image (desktop) */
+  heroImageUrl         String   @default("/images/pharmaco-logo.png")
   promoHeadline        String   @default("")
   promoSubcopy         String   @default("")
   whyChooseJson        String   @default("[]")
@@ -260,4 +264,23 @@ model CmsPage {
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+/** Homepage hero carousel slides (full-bleed background images) */
+model HeroSlide {
+  id                 String   @id @default(cuid())
+  sortOrder          Int      @default(0)
+  eyebrow            String   @default("")
+  headline           String
+  subcopy            String   @default("")
+  ctaLabel           String   @default("Shop now")
+  ctaHref            String   @default("/shop")
+  ctaSecondaryLabel  String   @default("")
+  ctaSecondaryHref   String   @default("")
+  backgroundUrl      String
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
 }
