@@ -1,4 +1,5 @@
-import { brandsData, categoriesData, productsData } from "@/constants/data";
+import { prisma } from "@/lib/prisma";
+import { mapBrand, mapCategory, mapProduct } from "@/lib/mappers";
 import { getDiscountedPrice } from "@/lib/utils";
 import type {
   Brand,
@@ -9,69 +10,111 @@ import type {
   SortOption,
 } from "@/types";
 
-/**
- * Data-access layer for the catalog.
- *
- * Currently backed by the sample data in `constants/data.ts`. When the
- * database is introduced (Prisma + PostgreSQL), only this file needs to
- * change — every page/component consumes these functions.
- */
-
 const DEFAULT_PAGE_SIZE = 12;
 
+const productInclude = {
+  category: { select: { slug: true, title: true } },
+  brand: { select: { slug: true, title: true } },
+  images: { select: { url: true, sortOrder: true } },
+} as const;
+
 export async function getCategories(): Promise<Category[]> {
-  return categoriesData;
+  const rows = await prisma.category.findMany({
+    where: { isActive: true },
+    orderBy: { title: "asc" },
+  });
+  return rows.map(mapCategory);
 }
 
 export async function getCategoryBySlug(
   slug: string,
 ): Promise<Category | undefined> {
-  return categoriesData.find((category) => category.slug === slug);
+  const row = await prisma.category.findFirst({
+    where: { slug, isActive: true },
+  });
+  return row ? mapCategory(row) : undefined;
 }
 
 export async function getBrands(): Promise<Brand[]> {
-  return brandsData;
+  const rows = await prisma.brand.findMany({
+    where: { isActive: true },
+    orderBy: { title: "asc" },
+  });
+  return rows.map(mapBrand);
 }
 
 export async function getBrandBySlug(
   slug: string,
 ): Promise<Brand | undefined> {
-  return brandsData.find((brand) => brand.slug === slug);
+  const row = await prisma.brand.findFirst({
+    where: { slug, isActive: true },
+  });
+  return row ? mapBrand(row) : undefined;
 }
 
 export async function getProductBySlug(
   slug: string,
 ): Promise<Product | undefined> {
-  return productsData.find((product) => product.slug === slug);
+  const row = await prisma.product.findFirst({
+    where: { slug, isArchived: false },
+    include: productInclude,
+  });
+  return row ? mapProduct(row) : undefined;
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
-  return productsData.filter((product) => product.isFeatured).slice(0, limit);
+  const rows = await prisma.product.findMany({
+    where: { isFeatured: true, isArchived: false },
+    include: productInclude,
+    take: limit,
+    orderBy: { updatedAt: "desc" },
+  });
+  return rows.map((row) => mapProduct(row));
 }
 
 export async function getBestSellers(limit = 8): Promise<Product[]> {
-  return [...productsData]
-    .sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
-    .slice(0, limit);
+  const rows = await prisma.product.findMany({
+    where: { isArchived: false },
+    include: productInclude,
+    orderBy: { reviewCount: "desc" },
+    take: limit,
+  });
+  return rows.map((row) => mapProduct(row));
 }
 
 export async function getRelatedProducts(
   product: Product,
   limit = 4,
 ): Promise<Product[]> {
-  return productsData
-    .filter(
-      (item) =>
-        item.categorySlug === product.categorySlug && item.id !== product.id,
-    )
-    .slice(0, limit);
+  const rows = await prisma.product.findMany({
+    where: {
+      isArchived: false,
+      id: { not: product.id },
+      category: { slug: product.categorySlug },
+    },
+    include: productInclude,
+    take: limit,
+  });
+  return rows.map((row) => mapProduct(row));
 }
 
 export async function getProductCountByCategory(): Promise<
   Record<string, number>
 > {
-  return productsData.reduce<Record<string, number>>((counts, product) => {
-    counts[product.categorySlug] = (counts[product.categorySlug] ?? 0) + 1;
+  const groups = await prisma.product.groupBy({
+    by: ["categoryId"],
+    where: { isArchived: false },
+    _count: { _all: true },
+  });
+  const categories = await prisma.category.findMany({
+    select: { id: true, slug: true },
+  });
+  const idToSlug = Object.fromEntries(
+    categories.map((category) => [category.id, category.slug]),
+  );
+  return groups.reduce<Record<string, number>>((counts, group) => {
+    const slug = idToSlug[group.categoryId];
+    if (slug) counts[slug] = group._count._all;
     return counts;
   }, {});
 }
@@ -79,28 +122,22 @@ export async function getProductCountByCategory(): Promise<
 export async function getProductCountByBrand(): Promise<
   Record<string, number>
 > {
-  return productsData.reduce<Record<string, number>>((counts, product) => {
-    counts[product.brandSlug] = (counts[product.brandSlug] ?? 0) + 1;
+  const groups = await prisma.product.groupBy({
+    by: ["brandId"],
+    where: { isArchived: false },
+    _count: { _all: true },
+  });
+  const brands = await prisma.brand.findMany({
+    select: { id: true, slug: true },
+  });
+  const idToSlug = Object.fromEntries(
+    brands.map((brand) => [brand.id, brand.slug]),
+  );
+  return groups.reduce<Record<string, number>>((counts, group) => {
+    const slug = idToSlug[group.brandId];
+    if (slug) counts[slug] = group._count._all;
     return counts;
   }, {});
-}
-
-function matchesQuery(product: Product, query: string): boolean {
-  const haystack = [
-    product.name,
-    product.genericName,
-    product.manufacturer,
-    categoriesData.find((c) => c.slug === product.categorySlug)?.title,
-    brandsData.find((b) => b.slug === product.brandSlug)?.title,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  return query
-    .toLowerCase()
-    .split(/\s+/)
-    .every((term) => haystack.includes(term));
 }
 
 function sortProducts(products: Product[], sort: SortOption): Product[] {
@@ -141,41 +178,54 @@ export async function getProducts(
     sort = "newest",
     page = 1,
     pageSize = DEFAULT_PAGE_SIZE,
+    includeArchived = false,
   } = filters;
 
-  let results = productsData;
+  const rows = await prisma.product.findMany({
+    where: {
+      isArchived: includeArchived ? undefined : false,
+      ...(category ? { category: { slug: category } } : {}),
+      ...(brand ? { brand: { slug: brand } } : {}),
+      ...(query?.trim()
+        ? {
+            OR: [
+              { name: { contains: query.trim() } },
+              { genericName: { contains: query.trim() } },
+              { manufacturer: { contains: query.trim() } },
+              { sku: { contains: query.trim() } },
+              { brand: { title: { contains: query.trim() } } },
+              { category: { title: { contains: query.trim() } } },
+            ],
+          }
+        : {}),
+    },
+    include: productInclude,
+  });
 
-  if (query?.trim()) {
-    results = results.filter((product) => matchesQuery(product, query.trim()));
-  }
-  if (category) {
-    results = results.filter((product) => product.categorySlug === category);
-  }
-  if (brand) {
-    results = results.filter((product) => product.brandSlug === brand);
-  }
+  let products = rows.map((row) => mapProduct(row));
+
   if (minPrice !== undefined) {
-    results = results.filter(
+    products = products.filter(
       (product) =>
         getDiscountedPrice(product.price, product.discount) >= minPrice,
     );
   }
   if (maxPrice !== undefined) {
-    results = results.filter(
+    products = products.filter(
       (product) =>
         getDiscountedPrice(product.price, product.discount) <= maxPrice,
     );
   }
 
-  results = sortProducts(results, sort);
+  products = sortProducts(products, sort);
 
-  const total = results.length;
+  const total = products.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(1, page), totalPages);
   const start = (safePage - 1) * pageSize;
 
   return {
-    products: results.slice(start, start + pageSize),
+    products: products.slice(start, start + pageSize),
     total,
     page: safePage,
     pageSize,
@@ -188,7 +238,6 @@ export async function searchProducts(
   limit = 8,
 ): Promise<Product[]> {
   if (!query.trim()) return [];
-  return productsData
-    .filter((product) => matchesQuery(product, query.trim()))
-    .slice(0, limit);
+  const result = await getProducts({ query, pageSize: limit, page: 1 });
+  return result.products;
 }

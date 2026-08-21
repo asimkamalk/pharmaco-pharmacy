@@ -59,6 +59,17 @@ const AccountPage = async () => {
             </Link>
           ))}
         </div>
+
+        {session.user.role === "ADMIN" && (
+          <div className="mt-6">
+            <Link
+              href="/admin"
+              className="inline-flex rounded-xl bg-shop_btn_dark_green px-5 py-3 text-sm font-semibold text-white hover:bg-shop_dark_green/90"
+            >
+              Open admin dashboard
+            </Link>
+          </div>
+        )}
       </Container>
     </main>
   );

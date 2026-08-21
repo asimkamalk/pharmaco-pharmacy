@@ -47,4 +47,8 @@ next-env.d.ts
 *.db
 *.db-journal
 
+# uploaded product images (keep folder)
+/public/uploads/products/*
+!/public/uploads/products/.gitkeep
+
 /lib/generated/prisma

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import CartIcon from "./CartIcon";
 import Container from "./Container";
 import FavouriteButton from "./FavouriteButton";
@@ -10,6 +11,7 @@ import { auth } from "@/auth";
 
 const Header = async () => {
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <header className="sticky top-0 z-40 border-b border-shop_dark_green/10 bg-white/90 backdrop-blur-md">
@@ -20,6 +22,14 @@ const Header = async () => {
         </div>
         <HeaderMenu />
         <div className="flex w-auto items-center justify-end gap-4 sm:gap-5 md:w-1/3">
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="hidden text-sm font-semibold text-shop_dark_green hover:text-shop_light_green sm:inline"
+            >
+              Admin
+            </Link>
+          )}
           <SearchBar />
           <CartIcon />
           <FavouriteButton />

@@ -16,6 +16,7 @@ import {
   getRelatedProducts,
 } from "@/lib/products";
 import { siteConfig } from "@/constants/site";
+import { sanitizeProductHtml } from "@/lib/sanitize";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -228,6 +229,27 @@ const ProductPage = async ({ params }: ProductPageProps) => {
             </section>
           </div>
         </div>
+
+        {product.longDescription &&
+          sanitizeProductHtml(product.longDescription).replace(/<[^>]+>/g, "").trim() && (
+            <section
+              aria-labelledby="product-details"
+              className="mt-12 border-t border-black/10 pt-10"
+            >
+              <h2
+                id="product-details"
+                className="mb-4 text-xl font-bold text-darkColor"
+              >
+                Product details
+              </h2>
+              <div
+                className="product-prose max-w-3xl"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeProductHtml(product.longDescription),
+                }}
+              />
+            </section>
+          )}
 
         {relatedProducts.length > 0 && (
           <section aria-labelledby="related-products" className="mt-14">

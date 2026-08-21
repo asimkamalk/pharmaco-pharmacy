@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-const protectedMatchers = [/^\/account(\/|$)/, /^\/checkout(\/|$)/, /^\/admin(\/|$)/];
+const protectedMatchers = [
+  /^\/account(\/|$)/,
+  /^\/checkout(\/|$)/,
+  /^\/admin(\/|$)/,
+];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  const isProtected = protectedMatchers.some((pattern) => pattern.test(pathname));
+  const isProtected = protectedMatchers.some((pattern) =>
+    pattern.test(pathname),
+  );
 
   if (isProtected && !req.auth) {
     const signInUrl = new URL("/sign-in", req.nextUrl.origin);
@@ -13,7 +19,14 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", pathname);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 });
 
 export const config = {

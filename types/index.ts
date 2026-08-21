@@ -3,10 +3,6 @@ export interface Category {
   title: string;
   slug: string;
   description: string;
-  /**
-   * Category image URL. Placeholder until the admin dashboard
-   * supports uploads; then this can point to uploaded storage.
-   */
   image: string;
 }
 
@@ -15,9 +11,6 @@ export interface Brand {
   title: string;
   slug: string;
   description: string;
-  /**
-   * Brand logo/image URL. Placeholder until admin uploads are available.
-   */
   image: string;
 }
 
@@ -25,22 +18,27 @@ export interface Product {
   id: string;
   name: string;
   slug: string;
+  /** Short plain-text description */
   description: string;
+  /** Rich HTML long description */
+  longDescription?: string;
   categorySlug: string;
-  /** Links the product to a brand in `brandsData`. */
+  categoryTitle?: string;
   brandSlug: string;
-  /** Current list price in PKR. */
+  brandTitle?: string;
+  /** Selling price before discount (PKR). */
   price: number;
-  /** Discount percentage (0–100). When > 0, the discounted price applies. */
+  /** Purchase / cost price (PKR). Shown in admin; optional on storefront. */
+  purchasePrice?: number;
   discount: number;
   stock: number;
   sku: string;
   images: string[];
   requiresPrescription: boolean;
   isFeatured: boolean;
+  isArchived?: boolean;
   rating?: number;
   reviewCount?: number;
-  /** Medicine-specific fields (optional for non-medicine products). */
   genericName?: string;
   strength?: string;
   dosageForm?: string;
@@ -64,6 +62,8 @@ export interface ProductFilters {
   sort?: SortOption;
   page?: number;
   pageSize?: number;
+  /** Admin-only: include archived products */
+  includeArchived?: boolean;
 }
 
 export interface PaginatedProducts {
@@ -87,7 +87,6 @@ export type AddressLabel = "home" | "office" | "other";
 export interface SavedAddress {
   id: string;
   label: AddressLabel;
-  /** Custom label when label === "other" */
   customLabel?: string;
   fullName: string;
   phone: string;
@@ -120,6 +119,7 @@ export interface OrderItemSnapshot {
   sku: string;
   quantity: number;
   unitPrice: number;
+  purchasePrice?: number;
   discount: number;
   requiresPrescription: boolean;
 }
@@ -131,9 +131,7 @@ export interface Order {
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
-  /** Transaction / reference ID entered by the customer for manual payments. */
   paymentReference?: string;
-  /** Optional note or screenshot filename reference for prescription. */
   prescriptionReference?: string;
   customerName: string;
   customerPhone: string;
@@ -150,5 +148,7 @@ export interface Order {
   subtotal: number;
   discountTotal: number;
   deliveryFee: number;
+  costTotal?: number;
   grandTotal: number;
+  userId?: string | null;
 }
