@@ -87,7 +87,7 @@ export async function getBestSellers(limit = 8): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     where: { isArchived: false },
     include: productInclude,
-    orderBy: { reviewCount: "desc" },
+    orderBy: { updatedAt: "desc" },
     take: limit,
   });
   return rows.map((row) => mapProduct(row));

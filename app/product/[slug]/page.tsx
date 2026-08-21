@@ -9,7 +9,6 @@ import JsonLd from "@/components/JsonLd";
 import PriceView from "@/components/PriceView";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
-import StarRating from "@/components/StarRating";
 import {
   getBrandBySlug,
   getCategoryBySlug,
@@ -163,12 +162,6 @@ const ProductPage = async ({ params }: ProductPageProps) => {
               <h1 className="text-2xl font-bold text-darkColor sm:text-3xl">
                 {product.name}
               </h1>
-              {product.rating !== undefined && (
-                <StarRating
-                  rating={product.rating}
-                  reviewCount={product.reviewCount}
-                />
-              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
