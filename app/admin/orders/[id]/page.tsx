@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import OrderStatusForm from "@/components/admin/OrderStatusForm";
 import { getOrderById } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
@@ -35,7 +36,14 @@ const AdminOrderDetailPage = async ({ params }: PageProps) => {
             {new Date(order.createdAt).toLocaleString("en-PK")}
           </p>
         </div>
-        <OrderStatusForm orderId={order.id} status={order.status} />
+        <div className="flex flex-wrap items-end gap-4">
+          <OrderStatusForm orderId={order.id} status={order.status} />
+          <DeleteOrderButton
+            orderId={order.id}
+            orderNumber={order.orderNumber}
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 hover:bg-red-100"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

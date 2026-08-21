@@ -287,4 +287,27 @@ export async function setOrderStatus(orderId: string, status: OrderStatus) {
   });
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath("/admin", "layout");
+  revalidatePath("/admin");
+}
+
+export async function deleteOrder(formData: FormData) {
+  await requireAdmin();
+  const orderId = String(formData.get("orderId") ?? "").trim();
+  if (!orderId) {
+    redirectWithFlash("/admin/orders", { error: "Order not found" });
+  }
+
+  try {
+    await prisma.order.delete({ where: { id: orderId } });
+  } catch {
+    redirectWithFlash("/admin/orders", {
+      error: "Could not delete this order",
+    });
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin", "layout");
+  revalidatePath("/admin");
+  redirectWithFlash("/admin/orders", { saved: true });
 }

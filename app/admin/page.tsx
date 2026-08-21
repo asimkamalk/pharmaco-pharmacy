@@ -24,17 +24,36 @@ const AdminDashboardPage = async ({ searchParams }: PageProps) => {
   });
 
   const cards = [
-    { label: "Products", value: stats.productCount.toString() },
-    { label: "Orders", value: stats.orderCount.toString() },
-    { label: "Pending orders", value: stats.pendingOrders.toString() },
-    { label: "Customers", value: stats.customerCount.toString() },
+    {
+      label: "Products",
+      value: stats.productCount.toString(),
+      hint: "In catalog",
+    },
+    {
+      label: "Orders",
+      value: stats.orderCount.toString(),
+      hint: "All time",
+    },
+    {
+      label: "Pending orders",
+      value: stats.pendingOrders.toString(),
+      hint: "Needs action",
+      accent: stats.pendingOrders > 0,
+    },
+    {
+      label: "Customers",
+      value: stats.customerCount.toString(),
+      hint: "Registered",
+    },
     {
       label: `${stats.rangeLabel} revenue`,
       value: formatPrice(stats.rangeRevenue),
+      hint: "Gross sales",
     },
     {
       label: `${stats.rangeLabel} profit`,
       value: formatPrice(stats.rangeProfit),
+      hint: "After cost",
     },
   ];
 
@@ -42,31 +61,48 @@ const AdminDashboardPage = async ({ searchParams }: PageProps) => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-darkColor">Dashboard</h1>
-          <p className="text-sm text-lightColor">
+          <h1 className="text-2xl font-bold tracking-tight text-darkColor">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-lightColor">
             Sales, stock and order overview
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="rounded-lg bg-shop_btn_dark_green px-4 py-2 text-sm font-semibold text-white hover:bg-shop_dark_green/90"
-        >
-          Add product
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {stats.pendingOrders > 0 && (
+            <Link
+              href="/admin/orders"
+              className="rounded-xl border border-shop_orange/30 bg-shop_orange/10 px-4 py-2 text-sm font-semibold text-shop_orange transition-colors hover:bg-shop_orange/15"
+            >
+              {stats.pendingOrders} pending
+            </Link>
+          )}
+          <Link
+            href="/admin/products/new"
+            className="rounded-xl bg-shop_btn_dark_green px-4 py-2 text-sm font-semibold text-white hover:bg-shop_dark_green/90"
+          >
+            Add product
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {cards.map((card) => (
           <div
             key={card.label}
-            className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm"
+            className="rounded-2xl border border-black/8 bg-white/90 p-4 shadow-[0_1px_2px_rgba(6,60,40,0.04)]"
           >
-            <p className="text-xs font-medium uppercase tracking-wide text-lightColor">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-lightColor">
               {card.label}
             </p>
-            <p className="mt-2 text-xl font-bold text-shop_dark_green">
+            <p
+              className={`mt-2 text-xl font-bold ${
+                card.accent ? "text-shop_orange" : "text-shop_dark_green"
+              }`}
+            >
               {card.value}
             </p>
+            <p className="mt-1 text-[11px] text-lightColor/80">{card.hint}</p>
           </div>
         ))}
       </div>

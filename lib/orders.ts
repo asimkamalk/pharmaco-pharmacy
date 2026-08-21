@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getDiscountedPrice } from "@/lib/utils";
@@ -250,6 +251,10 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     });
   });
 
+  revalidatePath("/admin", "layout");
+  revalidatePath("/admin");
+  revalidatePath("/admin/orders");
+
   return mapDbOrder(created);
 }
 
@@ -270,8 +275,19 @@ export async function getOrdersForUser(userId: string): Promise<Order[]> {
   return orders.map(mapDbOrder);
 }
 
-export async function getAllOrders(): Promise<Order[]> {
+export async function getAllOrders(query?: string): Promise<Order[]> {
+  const q = query?.trim();
   const orders = await prisma.order.findMany({
+    where: q
+      ? {
+          OR: [
+            { orderNumber: { contains: q } },
+            { customerName: { contains: q } },
+            { customerPhone: { contains: q } },
+            { customerEmail: { contains: q } },
+          ],
+        }
+      : undefined,
     include: { items: true },
     orderBy: { createdAt: "desc" },
   });
