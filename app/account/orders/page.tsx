@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import OrdersListView from "@/components/OrdersListView";
 
 export const metadata: Metadata = {
-  title: "My Orders",
+  title: "Order history",
 };
 
 const OrdersPage = () => {

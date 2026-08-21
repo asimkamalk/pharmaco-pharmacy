@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ClipboardList, Package } from "lucide-react";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
+import ReorderButton from "@/components/ReorderButton";
 import { auth } from "@/auth";
 import { getOrdersForUser } from "@/lib/orders";
 import { listPrescriptionRequestsForUser } from "@/lib/prescription-requests";
@@ -41,10 +42,15 @@ const OrdersListView = async () => {
 
   return (
     <Container className="py-8 sm:py-10">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-darkColor sm:text-3xl">
-          My Orders
-        </h1>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-darkColor sm:text-3xl">
+            Order history
+          </h1>
+          <p className="mt-1 text-sm text-lightColor">
+            Past and current orders — reorder anytime
+          </p>
+        </div>
         <Link
           href="/account"
           className="text-sm font-medium text-shop_light_green hover:text-shop_dark_green"
@@ -80,24 +86,34 @@ const OrdersListView = async () => {
       {orders.length === 0 ? (
         <EmptyState
           icon={Package}
-          title="No orders yet"
-          description="When you place an order, it will appear here with status and payment details."
+          title="No order history yet"
+          description="When you place an order, it will appear here so you can track it or reorder."
           actionLabel="Start Shopping"
           actionHref="/shop"
         />
       ) : (
         <ul className="space-y-4">
-          {orders.map((order) => (
-            <li key={order.id}>
-              <Link
-                href={`/account/orders/${order.id}`}
-                className="block rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition-all duration-200 hover:border-shop_light_green/40 hover:shadow-md"
+          {orders.map((order) => {
+            const reorderItems = order.items
+              .filter((item) => item.productId)
+              .map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+              }));
+
+            return (
+              <li
+                key={order.id}
+                className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-darkColor">
+                  <div className="min-w-0">
+                    <Link
+                      href={`/account/orders/${order.id}`}
+                      className="font-semibold text-darkColor hover:text-shop_dark_green"
+                    >
                       {order.orderNumber}
-                    </p>
+                    </Link>
                     <p className="mt-1 text-xs text-lightColor">
                       {formatPkDateTime(order.createdAt)} ·{" "}
                       {paymentLabels[order.paymentMethod]} ·{" "}
@@ -111,8 +127,7 @@ const OrdersListView = async () => {
                             ? "approved"
                             : order.prescriptionStatus === "rejected"
                               ? "rejected"
-                              : "under review"}{" "}
-                          · open order to view file
+                              : "under review"}
                         </p>
                       )}
                   </div>
@@ -122,18 +137,28 @@ const OrdersListView = async () => {
                     {order.status.replaceAll("_", " ")}
                   </span>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
                   <p className="text-lightColor">
                     {order.items.length} item
-                    {order.items.length === 1 ? "" : "s"}
+                    {order.items.length === 1 ? "" : "s"} ·{" "}
+                    <span className="font-semibold text-shop_dark_green">
+                      {formatPrice(order.grandTotal)}
+                    </span>
                   </p>
-                  <p className="font-semibold text-shop_dark_green">
-                    {formatPrice(order.grandTotal)}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/account/orders/${order.id}`}
+                      className="inline-flex h-10 items-center rounded-lg border border-black/15 px-4 text-sm font-semibold text-darkColor hover:border-shop_light_green"
+                    >
+                      View details
+                    </Link>
+                    <ReorderButton items={reorderItems} variant="ghost" />
+                  </div>
                 </div>
-              </Link>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </Container>

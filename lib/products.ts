@@ -62,6 +62,17 @@ export async function getProductBySlug(
   return row ? mapProduct(row) : undefined;
 }
 
+export async function getProductsByIds(ids: string[]): Promise<Product[]> {
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!unique.length) return [];
+  const rows = await prisma.product.findMany({
+    where: { id: { in: unique }, isArchived: false },
+    include: productInclude,
+  });
+  const map = Object.fromEntries(rows.map((row) => [row.id, mapProduct(row)]));
+  return unique.map((id) => map[id]).filter(Boolean) as Product[];
+}
+
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     where: { isFeatured: true, isArchived: false },

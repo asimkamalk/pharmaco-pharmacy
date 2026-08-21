@@ -4,6 +4,7 @@ import { CheckCircle2, FileText, Package } from "lucide-react";
 import { redirect } from "next/navigation";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
+import ReorderButton from "@/components/ReorderButton";
 import { auth } from "@/auth";
 import { getOrderById } from "@/lib/orders";
 import { formatPkDateTime } from "@/lib/datetime";
@@ -313,11 +314,19 @@ const OrderDetailView = async ({
           href="/account/orders"
           className="inline-flex h-10 items-center rounded-lg border border-black/15 px-5 text-sm font-semibold text-darkColor hover:border-shop_light_green"
         >
-          All orders
+          Order history
         </Link>
+        <ReorderButton
+          items={order.items
+            .filter((item) => item.productId)
+            .map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+            }))}
+        />
         <Link
           href="/shop"
-          className="inline-flex h-10 items-center rounded-lg bg-shop_btn_dark_green px-5 text-sm font-semibold text-white hover:bg-shop_dark_green/90"
+          className="inline-flex h-10 items-center rounded-lg border border-black/15 px-5 text-sm font-semibold text-darkColor hover:border-shop_light_green"
         >
           Continue shopping
         </Link>
