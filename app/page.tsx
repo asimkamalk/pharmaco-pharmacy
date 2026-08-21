@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import {
   ArrowRight,
   BadgeCheck,
+  ClipboardList,
   Clock,
   ShieldCheck,
   Stethoscope,
@@ -225,6 +226,62 @@ const Home = async () => {
         </Container>
       </section>
 
+      {/* Order by prescription */}
+      <section
+        aria-labelledby="order-by-prescription"
+        className="border-y border-shop_orange/15 bg-gradient-to-b from-shop_light_pink/50 to-white"
+      >
+        <Container className="py-12 sm:py-14">
+          <div className="mx-auto max-w-3xl">
+            <Reveal>
+              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:gap-5">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-shop_orange/15 text-shop_orange">
+                  <ClipboardList className="h-6 w-6" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2
+                    id="order-by-prescription"
+                    className="text-xl font-bold text-darkColor sm:text-2xl"
+                  >
+                    {siteConfig.home.rxOrderHeadline}
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-lightColor sm:text-base">
+                    {siteConfig.home.rxOrderSubcopy}
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+
+            <ol className="mt-8 space-y-4">
+              {siteConfig.home.rxOrderSteps.map((step, index) => (
+                <Reveal key={step} delayMs={index * 80}>
+                  <li className="flex gap-3 sm:gap-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-shop_dark_green text-sm font-bold text-white">
+                      {index + 1}
+                    </span>
+                    <p className="pt-1 text-sm leading-relaxed text-darkColor sm:text-[15px]">
+                      {step}
+                    </p>
+                  </li>
+                </Reveal>
+              ))}
+            </ol>
+
+            <Reveal delayMs={240}>
+              <div className="mt-8">
+                <Link
+                  href="/order-by-prescription"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-shop_btn_dark_green px-6 text-sm font-semibold text-white transition-colors hover:bg-shop_dark_green/90"
+                >
+                  {siteConfig.home.rxOrderCtaLabel}
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+        </Container>
+      </section>
+
       {/* Best sellers */}
       <section aria-labelledby="best-sellers">
         <Container className="pb-12 sm:pb-14">
@@ -327,7 +384,7 @@ const Home = async () => {
           <Reveal variant="fade">
             <GoogleMap />
           </Reveal>
-        </Container>
+    </Container>
       </section>
     </main>
   );

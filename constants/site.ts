@@ -71,6 +71,10 @@ export type SiteConfig = {
     promoHeadline: string;
     promoSubcopy: string;
     whyChoose: WhyChooseItem[];
+    rxOrderHeadline: string;
+    rxOrderSubcopy: string;
+    rxOrderSteps: [string, string, string];
+    rxOrderCtaLabel: string;
   };
 };
 
@@ -170,6 +174,15 @@ export const defaultSiteConfig: SiteConfig = {
           "Prescription-required items are clearly marked and verified at checkout.",
       },
     ],
+    rxOrderHeadline: "Order by prescription",
+    rxOrderSubcopy:
+      "Skip searching every product. Upload your prescription and our pharmacist will prepare your order for delivery.",
+    rxOrderSteps: [
+      "Upload a clear photo or PDF of your prescription",
+      "Choose a saved delivery address (a medicines note is optional)",
+      "We build the order, confirm if needed, and deliver to your door",
+    ],
+    rxOrderCtaLabel: "Order by prescription",
   },
 };
 
