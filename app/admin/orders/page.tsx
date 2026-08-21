@@ -86,7 +86,9 @@ const AdminOrdersPage = async ({ searchParams }: PageProps) => {
               <th className="px-4 py-3 font-semibold">Total</th>
               <th className="px-4 py-3 font-semibold">Profit</th>
               <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Actions</th>
+              <th className="w-28 px-4 py-3 text-left font-semibold">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5">
@@ -142,8 +144,8 @@ const AdminOrdersPage = async ({ searchParams }: PageProps) => {
                   <td className="px-4 py-3 capitalize">
                     {order.status.replaceAll("_", " ")}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap items-center justify-end gap-3">
+                  <td className="px-4 py-3 align-top">
+                    <div className="flex flex-col items-start gap-1.5">
                       <Link
                         href={`/admin/orders/${order.id}`}
                         className="font-medium text-shop_light_green hover:text-shop_dark_green"
