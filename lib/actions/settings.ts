@@ -158,6 +158,12 @@ export async function saveHomepageSettings(formData: FormData) {
       promoHeadline: str(formData, "promoHeadline"),
       promoSubcopy: str(formData, "promoSubcopy"),
       whyChooseJson: JSON.stringify(whyChoose),
+      rxOrderHeadline: str(formData, "rxOrderHeadline"),
+      rxOrderSubcopy: str(formData, "rxOrderSubcopy"),
+      rxOrderStep1: str(formData, "rxOrderStep1"),
+      rxOrderStep2: str(formData, "rxOrderStep2"),
+      rxOrderStep3: str(formData, "rxOrderStep3"),
+      rxOrderCtaLabel: str(formData, "rxOrderCtaLabel") || "Order by prescription",
     },
   });
 

@@ -198,6 +198,12 @@ async function main() {
       promoHeadline: d.home.promoHeadline,
       promoSubcopy: d.home.promoSubcopy,
       whyChooseJson: JSON.stringify(d.home.whyChoose),
+      rxOrderHeadline: d.home.rxOrderHeadline,
+      rxOrderSubcopy: d.home.rxOrderSubcopy,
+      rxOrderStep1: d.home.rxOrderSteps[0],
+      rxOrderStep2: d.home.rxOrderSteps[1],
+      rxOrderStep3: d.home.rxOrderSteps[2],
+      rxOrderCtaLabel: d.home.rxOrderCtaLabel,
     },
   });
 

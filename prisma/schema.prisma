@@ -304,6 +304,13 @@ model SiteSettings {
   promoHeadline        String   @default("")
   promoSubcopy         String   @default("")
   whyChooseJson        String   @default("[]")
+  /** Homepage “Order by prescription” block */
+  rxOrderHeadline      String   @default("Order by prescription")
+  rxOrderSubcopy       String   @default("")
+  rxOrderStep1         String   @default("")
+  rxOrderStep2         String   @default("")
+  rxOrderStep3         String   @default("")
+  rxOrderCtaLabel      String   @default("Order by prescription")
   updatedAt            DateTime @updatedAt
 }
 

@@ -61,6 +61,12 @@ export function mapSettingsToConfig(row: {
   promoHeadline: string;
   promoSubcopy: string;
   whyChooseJson: string;
+  rxOrderHeadline: string;
+  rxOrderSubcopy: string;
+  rxOrderStep1: string;
+  rxOrderStep2: string;
+  rxOrderStep3: string;
+  rxOrderCtaLabel: string;
 }): SiteConfig {
   const d = defaultSiteConfig;
   return {
@@ -137,6 +143,14 @@ export function mapSettingsToConfig(row: {
       promoHeadline: row.promoHeadline || d.home.promoHeadline,
       promoSubcopy: row.promoSubcopy || d.home.promoSubcopy,
       whyChoose: parseWhyChoose(row.whyChooseJson),
+      rxOrderHeadline: row.rxOrderHeadline || d.home.rxOrderHeadline,
+      rxOrderSubcopy: row.rxOrderSubcopy || d.home.rxOrderSubcopy,
+      rxOrderSteps: [
+        row.rxOrderStep1 || d.home.rxOrderSteps[0],
+        row.rxOrderStep2 || d.home.rxOrderSteps[1],
+        row.rxOrderStep3 || d.home.rxOrderSteps[2],
+      ],
+      rxOrderCtaLabel: row.rxOrderCtaLabel || d.home.rxOrderCtaLabel,
     },
   };
 }
@@ -216,6 +230,12 @@ export async function ensureSiteSettings() {
         promoHeadline: d.home.promoHeadline,
         promoSubcopy: d.home.promoSubcopy,
         whyChooseJson: JSON.stringify(d.home.whyChoose),
+        rxOrderHeadline: d.home.rxOrderHeadline,
+        rxOrderSubcopy: d.home.rxOrderSubcopy,
+        rxOrderStep1: d.home.rxOrderSteps[0],
+        rxOrderStep2: d.home.rxOrderSteps[1],
+        rxOrderStep3: d.home.rxOrderSteps[2],
+        rxOrderCtaLabel: d.home.rxOrderCtaLabel,
       },
     });
   }
@@ -233,8 +253,14 @@ export async function ensureSiteSettings() {
     existing.email.includes("example.com") ||
     !existing.mapLinkUrl.includes("maps.app.goo.gl/RRzaApoHHqsozbdy8") ||
     !existing.mapEmbedUrl.includes("0x38d911005f142e31");
+  const needsRxOrderBackfill =
+    !existing.rxOrderHeadline?.trim() ||
+    !existing.rxOrderSubcopy?.trim() ||
+    !existing.rxOrderStep1?.trim();
 
-  if (!needsNapUpdate && !needsHoursUpdate) return existing;
+  if (!needsNapUpdate && !needsHoursUpdate && !needsRxOrderBackfill) {
+    return existing;
+  }
 
   return prisma.siteSettings.update({
     where: { id: "default" },
@@ -269,6 +295,22 @@ export async function ensureSiteSettings() {
               existing.deliveryEstimate === oldEstimate
                 ? d.delivery.estimate
                 : existing.deliveryEstimate,
+          }
+        : {}),
+      ...(needsRxOrderBackfill
+        ? {
+            rxOrderHeadline:
+              existing.rxOrderHeadline?.trim() || d.home.rxOrderHeadline,
+            rxOrderSubcopy:
+              existing.rxOrderSubcopy?.trim() || d.home.rxOrderSubcopy,
+            rxOrderStep1:
+              existing.rxOrderStep1?.trim() || d.home.rxOrderSteps[0],
+            rxOrderStep2:
+              existing.rxOrderStep2?.trim() || d.home.rxOrderSteps[1],
+            rxOrderStep3:
+              existing.rxOrderStep3?.trim() || d.home.rxOrderSteps[2],
+            rxOrderCtaLabel:
+              existing.rxOrderCtaLabel?.trim() || d.home.rxOrderCtaLabel,
           }
         : {}),
     },
