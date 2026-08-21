@@ -22,6 +22,10 @@ export interface Product {
   description: string;
   /** Rich HTML long description */
   longDescription?: string;
+  /** SEO meta description (~160 chars) for Google & social */
+  metaDescription?: string;
+  /** Optional SEO title (defaults to product name) */
+  metaTitle?: string;
   categorySlug: string;
   categoryTitle?: string;
   brandSlug: string;

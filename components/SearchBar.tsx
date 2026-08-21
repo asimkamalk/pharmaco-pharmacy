@@ -24,6 +24,7 @@ const SearchBar = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSuggestions, setIsSuggestions] = useState(true);
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -42,14 +43,9 @@ const SearchBar = () => {
   }, []);
 
   useEffect(() => {
-    const trimmed = query.trim();
-    if (!trimmed) {
-      setProducts([]);
-      setCategories([]);
-      setBrands([]);
-      return;
-    }
+    if (!open) return;
 
+    const trimmed = query.trim();
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -61,19 +57,23 @@ const SearchBar = () => {
         setProducts(data.products ?? []);
         setCategories(data.categories ?? []);
         setBrands(data.brands ?? []);
+        setIsSuggestions(Boolean(data.suggestions) || !trimmed);
       } finally {
         setLoading(false);
       }
-    }, 200);
+    }, trimmed ? 200 : 0);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, open]);
 
   const navigate = (href: string) => {
     setOpen(false);
     setQuery("");
     router.push(href);
   };
+
+  const hasResults =
+    products.length > 0 || categories.length > 0 || brands.length > 0;
 
   return (
     <>
@@ -100,12 +100,20 @@ const SearchBar = () => {
             onValueChange={setQuery}
           />
           <CommandList>
-            <CommandEmpty>
-              {loading ? "Searching…" : "No results found."}
-            </CommandEmpty>
+            {!hasResults && (
+              <CommandEmpty>
+                {loading
+                  ? "Searching…"
+                  : query.trim()
+                    ? "No results found."
+                    : "No suggestions available."}
+              </CommandEmpty>
+            )}
 
             {products.length > 0 && (
-              <CommandGroup heading="Products">
+              <CommandGroup
+                heading={isSuggestions ? "Popular products" : "Products"}
+              >
                 {products.map((product) => (
                   <CommandItem
                     key={product.id}
@@ -115,7 +123,7 @@ const SearchBar = () => {
                   >
                     <Image
                       src={product.images[0]}
-                      alt=""
+                      alt={product.imageAlts?.[0] || product.name}
                       width={36}
                       height={36}
                       className="h-9 w-9 rounded object-cover"
@@ -144,7 +152,15 @@ const SearchBar = () => {
                     onSelect={() =>
                       navigate(`/shop?category=${category.slug}`)
                     }
+                    className="gap-3"
                   >
+                    <Image
+                      src={category.image}
+                      alt={category.imageAlt || category.title}
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 rounded object-cover"
+                    />
                     {category.title}
                   </CommandItem>
                 ))}
@@ -158,10 +174,32 @@ const SearchBar = () => {
                     key={brand.id}
                     value={`brand-${brand.slug}`}
                     onSelect={() => navigate(`/shop?brand=${brand.slug}`)}
+                    className="gap-3"
                   >
+                    <Image
+                      src={brand.image}
+                      alt={brand.imageAlt || brand.title}
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 rounded object-cover"
+                    />
                     {brand.title}
                   </CommandItem>
                 ))}
+              </CommandGroup>
+            )}
+
+            {isSuggestions && hasResults && (
+              <CommandGroup heading="Quick links">
+                <CommandItem value="shop-all" onSelect={() => navigate("/shop")}>
+                  Browse all products
+                </CommandItem>
+                <CommandItem
+                  value="categories-all"
+                  onSelect={() => navigate("/categories")}
+                >
+                  View all categories
+                </CommandItem>
               </CommandGroup>
             )}
           </CommandList>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import SalesChart from "@/components/admin/SalesChart";
+import SalesOverview from "@/components/admin/SalesOverview";
 import { getDashboardStats } from "@/lib/dashboard";
 import { formatPrice } from "@/lib/utils";
 
@@ -7,16 +7,35 @@ export const metadata = {
   title: "Admin Dashboard",
 };
 
-const AdminDashboardPage = async () => {
-  const stats = await getDashboardStats();
+interface PageProps {
+  searchParams: Promise<{
+    range?: string;
+    from?: string;
+    to?: string;
+  }>;
+}
+
+const AdminDashboardPage = async ({ searchParams }: PageProps) => {
+  const params = await searchParams;
+  const stats = await getDashboardStats({
+    preset: params.range,
+    from: params.from,
+    to: params.to,
+  });
 
   const cards = [
     { label: "Products", value: stats.productCount.toString() },
     { label: "Orders", value: stats.orderCount.toString() },
     { label: "Pending orders", value: stats.pendingOrders.toString() },
     { label: "Customers", value: stats.customerCount.toString() },
-    { label: "30-day revenue", value: formatPrice(stats.revenue30) },
-    { label: "30-day profit", value: formatPrice(stats.profit30) },
+    {
+      label: `${stats.rangeLabel} revenue`,
+      value: formatPrice(stats.rangeRevenue),
+    },
+    {
+      label: `${stats.rangeLabel} profit`,
+      value: formatPrice(stats.rangeProfit),
+    },
   ];
 
   return (
@@ -52,23 +71,19 @@ const AdminDashboardPage = async () => {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-darkColor">
-              Sales (last 30 days)
-            </h2>
-            <p className="text-xs text-lightColor">
-              Green = revenue · Orange = estimated profit
-            </p>
-          </div>
-          <div className="text-right text-xs text-lightColor">
-            <p>Categories: {stats.categoryCount}</p>
-            <p>Brands: {stats.brandCount}</p>
-          </div>
-        </div>
-        <SalesChart data={stats.salesSeries} />
-      </div>
+      <SalesOverview
+        data={stats.salesSeries}
+        rangeLabel={stats.rangeLabel}
+        rangePreset={
+          params.range === "custom" ? "custom" : stats.rangePreset
+        }
+        rangeFrom={params.from || stats.rangeFrom}
+        rangeTo={params.to || stats.rangeTo}
+        rangeRevenue={stats.rangeRevenue}
+        rangeProfit={stats.rangeProfit}
+        categoryCount={stats.categoryCount}
+        brandCount={stats.brandCount}
+      />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">

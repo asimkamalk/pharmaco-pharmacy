@@ -22,6 +22,8 @@ type DbProduct = {
   slug: string;
   description: string;
   longDescription: string;
+  metaDescription?: string;
+  metaTitle?: string;
   sku: string;
   purchasePrice: number;
   price: number;
@@ -76,6 +78,8 @@ export function mapProduct(
     slug: product.slug,
     description: product.description,
     longDescription: product.longDescription || undefined,
+    metaDescription: product.metaDescription || undefined,
+    metaTitle: product.metaTitle || undefined,
     categorySlug: product.category.slug,
     categoryTitle: product.category.title,
     brandSlug: product.brand.slug,

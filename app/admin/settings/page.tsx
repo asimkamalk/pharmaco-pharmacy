@@ -231,13 +231,19 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
         </section>
 
         <section className="space-y-3">
-          <h2 className="font-semibold text-darkColor">SEO</h2>
+          <h2 className="font-semibold text-darkColor">SEO (site-wide)</h2>
+          <p className="text-xs text-lightColor">
+            Used for the homepage and pages without their own SEO fields.
+            Product pages use each product&apos;s Meta title / Meta description
+            (and product image) from Admin → Products.
+          </p>
           <div className="grid gap-3">
             <label className="space-y-1 text-sm">
               <span>Default title</span>
               <input
                 name="seoTitle"
                 defaultValue={site.seo.title}
+                maxLength={70}
                 className={field}
               />
             </label>
@@ -246,9 +252,13 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
               <textarea
                 name="seoDescription"
                 rows={3}
+                maxLength={160}
                 defaultValue={site.seo.description}
                 className={field}
               />
+              <span className="text-xs text-lightColor">
+                Recommended ~160 characters for Google search snippets.
+              </span>
             </label>
           </div>
         </section>

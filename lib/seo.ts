@@ -135,8 +135,11 @@ export function buildProductJsonLd(product: Product, site: SiteConfig) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: product.name,
-    description: product.description,
+    name: product.metaTitle?.trim() || product.name,
+    description:
+      product.metaDescription?.trim() ||
+      product.description ||
+      product.name,
     sku: product.sku,
     image: product.images.map((image) => absoluteUrl(image)),
     brand: product.brandSlug
