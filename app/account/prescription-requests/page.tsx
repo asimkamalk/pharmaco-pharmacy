@@ -77,10 +77,20 @@ const AccountPrescriptionRequestsPage = async () => {
               <p className="mt-3 text-sm text-darkColor line-clamp-3">
                 {req.medicinesNote}
               </p>
+              {req.prescriptionUrl && (
+                <a
+                  href={req.prescriptionUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex text-sm font-semibold text-shop_dark_green hover:underline"
+                >
+                  View uploaded prescription
+                </a>
+              )}
               {req.status === "fulfilled" && req.orderId && (
                 <Link
                   href={`/account/orders/${req.orderId}`}
-                  className="mt-3 inline-block text-sm font-semibold text-shop_light_green hover:text-shop_dark_green"
+                  className="mt-2 block text-sm font-semibold text-shop_light_green hover:text-shop_dark_green"
                 >
                   View order {req.orderNumber}
                 </Link>
