@@ -83,7 +83,7 @@ const SearchBar = () => {
           Search…
         </span>
         <kbd className="hidden rounded border border-black/10 bg-white px-1.5 py-0.5 text-[10px] font-medium lg:inline">
-          ⌘K
+          Ctrl K
         </kbd>
       </button>
 
