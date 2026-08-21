@@ -32,8 +32,13 @@ const SearchBar = () => {
         setOpen((prev) => !prev);
       }
     };
+    const handleOpenSearch = () => setOpen(true);
     document.addEventListener("keydown", handleShortcut);
-    return () => document.removeEventListener("keydown", handleShortcut);
+    window.addEventListener("pharmaco:open-search", handleOpenSearch);
+    return () => {
+      document.removeEventListener("keydown", handleShortcut);
+      window.removeEventListener("pharmaco:open-search", handleOpenSearch);
+    };
   }, []);
 
   useEffect(() => {
@@ -75,7 +80,7 @@ const SearchBar = () => {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-shop_light_bg text-lightColor transition-colors hover:border-shop_light_green/40 hover:text-shop_dark_green md:w-auto md:max-w-[11rem] md:justify-start md:gap-2 md:px-3 lg:max-w-[14rem]"
+        className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-shop_light_bg text-lightColor transition-colors hover:border-shop_light_green/40 hover:text-shop_dark_green md:flex md:w-auto md:max-w-[11rem] md:justify-start md:gap-2 md:px-3 lg:max-w-[14rem]"
         aria-label="Search products"
       >
         <Search className="h-4 w-4 shrink-0" />
