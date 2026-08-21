@@ -3,6 +3,7 @@ import Container from "./Container";
 import FavouriteButton from "./FavouriteButton";
 import HeaderMenu from "./HeaderMenu";
 import Logo from "./Logo";
+import OrderByPrescriptionButton from "./OrderByPrescriptionButton";
 import SearchBar from "./SearchBar";
 import Signin from "./Signin";
 import MobileMenu from "./MobileMenu";
@@ -23,6 +24,7 @@ const Header = async () => {
 
         <div className="flex shrink-0 items-center justify-end gap-2.5 sm:gap-3">
           <SearchBar />
+          <OrderByPrescriptionButton />
           <div className="hidden md:contents">
             <CartIcon />
             <FavouriteButton />

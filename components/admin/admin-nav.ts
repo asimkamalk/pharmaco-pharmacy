@@ -1,5 +1,6 @@
 import {
   Boxes,
+  ClipboardList,
   FileText,
   Home,
   ImageIcon,
@@ -40,6 +41,11 @@ export const adminNavGroups: AdminNavGroup[] = [
     label: "Sales",
     items: [
       { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+      {
+        href: "/admin/prescription-requests",
+        label: "Order by Rx",
+        icon: ClipboardList,
+      },
       { href: "/admin/customers", label: "Customers", icon: Users },
     ],
   },

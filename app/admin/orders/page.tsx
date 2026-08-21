@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ClipboardList, Search } from "lucide-react";
 import AdminFlash from "@/components/admin/AdminFlash";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import { getAllOrders } from "@/lib/orders";
+import { prisma } from "@/lib/prisma";
 import { formatPkDateTime } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
 
@@ -15,7 +16,12 @@ interface PageProps {
 const AdminOrdersPage = async ({ searchParams }: PageProps) => {
   const { q, saved, error } = await searchParams;
   const query = q?.trim() ?? "";
-  const orders = await getAllOrders(query);
+  const [orders, openRxRequests] = await Promise.all([
+    getAllOrders(query),
+    prisma.prescriptionRequest.count({
+      where: { status: { in: ["pending", "in_progress"] } },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -33,6 +39,25 @@ const AdminOrdersPage = async ({ searchParams }: PageProps) => {
         error={error}
         savedMessage="Order deleted."
       />
+
+      {openRxRequests > 0 && (
+        <Link
+          href="/admin/prescription-requests"
+          className="flex items-start gap-3 rounded-2xl border border-shop_orange/30 bg-shop_light_pink/50 px-4 py-3 transition-colors hover:bg-shop_light_pink"
+        >
+          <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-shop_orange" />
+          <div>
+            <p className="text-sm font-semibold text-darkColor">
+              {openRxRequests} Order-by-Prescription request
+              {openRxRequests === 1 ? "" : "s"} waiting
+            </p>
+            <p className="text-xs text-lightColor">
+              Customer uploaded a prescription and medicines note — open to
+              build their order.
+            </p>
+          </div>
+        </Link>
+      )}
 
       <form
         action="/admin/orders"
@@ -124,6 +149,21 @@ const AdminOrdersPage = async ({ searchParams }: PageProps) => {
                     <p className="text-xs text-lightColor">
                       {formatPkDateTime(order.createdAt)}
                     </p>
+                    {order.prescriptionStatus === "pending_review" && (
+                      <span className="mt-1 inline-block rounded-full bg-shop_orange/15 px-2 py-0.5 text-[10px] font-semibold text-shop_orange">
+                        Rx review
+                      </span>
+                    )}
+                    {order.prescriptionStatus === "approved" && (
+                      <span className="mt-1 inline-block rounded-full bg-shop_light_green/15 px-2 py-0.5 text-[10px] font-semibold text-shop_dark_green">
+                        Rx OK
+                      </span>
+                    )}
+                    {order.prescriptionStatus === "rejected" && (
+                      <span className="mt-1 inline-block rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+                        Rx rejected
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <p>{order.customerName}</p>

@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 interface AdminShellProps {
   user: AdminProfileUser;
   pendingCount: number;
+  rxReviewCount?: number;
+  attentionCount?: number;
   notifications: AdminOrderNotice[];
   children: React.ReactNode;
 }
@@ -92,6 +94,8 @@ function NavLinks({
 const AdminShell = ({
   user,
   pendingCount,
+  rxReviewCount = 0,
+  attentionCount,
   notifications,
   children,
 }: AdminShellProps) => {
@@ -198,6 +202,8 @@ const AdminShell = ({
               <div className="flex shrink-0 items-center gap-2 overflow-visible sm:gap-2.5">
                 <AdminNotifications
                   pendingCount={pendingCount}
+                  rxReviewCount={rxReviewCount}
+                  attentionCount={attentionCount}
                   orders={notifications}
                 />
                 <AdminProfileMenu user={user} />

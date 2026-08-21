@@ -128,6 +128,12 @@ export interface OrderItemSnapshot {
   requiresPrescription: boolean;
 }
 
+export type PrescriptionStatus =
+  | "not_required"
+  | "pending_review"
+  | "approved"
+  | "rejected";
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -137,6 +143,11 @@ export interface Order {
   paymentStatus: PaymentStatus;
   paymentReference?: string;
   prescriptionReference?: string;
+  prescriptionUrl?: string;
+  prescriptionFileName?: string;
+  prescriptionMimeType?: string;
+  prescriptionStatus?: PrescriptionStatus;
+  prescriptionAdminNote?: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string;

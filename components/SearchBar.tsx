@@ -191,6 +191,12 @@ const SearchBar = () => {
 
             {isSuggestions && hasResults && (
               <CommandGroup heading="Quick links">
+                <CommandItem
+                  value="order-by-rx"
+                  onSelect={() => navigate("/order-by-prescription")}
+                >
+                  Order by prescription
+                </CommandItem>
                 <CommandItem value="shop-all" onSelect={() => navigate("/shop")}>
                   Browse all products
                 </CommandItem>

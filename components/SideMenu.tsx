@@ -61,6 +61,13 @@ const SideMenu: FC<SideMenuProps> = ({ isOpen, onClose }: SideMenuProps) => {
               {item?.title}
             </Link>
           ))}
+          <Link
+            href="/order-by-prescription"
+            onClick={onClose}
+            className={`hover:text-shop_orange ${pathname === "/order-by-prescription" && "text-shop_orange"}`}
+          >
+            Order by Prescription
+          </Link>
         </div>
         <SocialMedia />
       </div>

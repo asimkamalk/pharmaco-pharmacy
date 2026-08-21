@@ -88,14 +88,24 @@ const HomeHero = ({ slides }: HomeHeroProps) => {
               key={slide.id}
               className="relative h-full min-w-0 flex-[0_0_100%]"
             >
-              <Image
-                src={slide.backgroundUrl}
-                alt=""
-                fill
-                priority={slideIndex === 0}
-                sizes="100vw"
-                className="object-cover object-center"
-              />
+              <div className="absolute inset-0 overflow-hidden">
+                <Image
+                  key={
+                    slideIndex === index
+                      ? `zoom-${slide.id}-${progressKey}`
+                      : `still-${slide.id}`
+                  }
+                  src={slide.backgroundUrl}
+                  alt=""
+                  fill
+                  priority={slideIndex === 0}
+                  sizes="100vw"
+                  className={cn(
+                    "object-cover object-center",
+                    slideIndex === index && "hero-image-zoom",
+                  )}
+                />
+              </div>
               <div
                 aria-hidden
                 className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20 sm:from-black/70 sm:via-black/40 sm:to-transparent"
@@ -103,7 +113,13 @@ const HomeHero = ({ slides }: HomeHeroProps) => {
 
               <div className="relative z-10 flex h-full items-center">
                 <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-                  <div className="max-w-xl space-y-4 text-left sm:space-y-5 md:max-w-2xl">
+                  <div
+                    key={`copy-${slide.id}-${slideIndex === index ? progressKey : "idle"}`}
+                    className={cn(
+                      "max-w-xl space-y-4 text-left sm:space-y-5 md:max-w-2xl",
+                      slideIndex === index && "hero-copy-enter",
+                    )}
+                  >
                     {slide.eyebrow && (
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-shop_orange sm:text-xs">
                         {slide.eyebrow}

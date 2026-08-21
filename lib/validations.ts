@@ -81,6 +81,7 @@ export const checkoutFormSchema = z
     ]),
     paymentReference: z.string().trim().max(80).optional(),
     prescriptionReference: z.string().trim().max(200).optional(),
+    prescriptionUrl: z.string().trim().max(500).optional(),
     orderNotes: z.string().trim().max(500).optional(),
     requiresPrescription: z.boolean(),
   })
@@ -95,15 +96,11 @@ export const checkoutFormSchema = z
       }
     }
     if (data.requiresPrescription) {
-      if (
-        !data.prescriptionReference?.trim() ||
-        data.prescriptionReference.trim().length < 3
-      ) {
+      if (!data.prescriptionUrl?.trim()) {
         ctx.addIssue({
           code: "custom",
-          path: ["prescriptionReference"],
-          message:
-            "Provide a prescription reference (photo WhatsApp number, file name, or note)",
+          path: ["prescriptionUrl"],
+          message: "Upload a clear photo or PDF of your prescription",
         });
       }
     }

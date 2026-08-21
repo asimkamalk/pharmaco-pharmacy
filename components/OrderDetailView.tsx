@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CheckCircle2, Package } from "lucide-react";
+import { CheckCircle2, FileText, Package } from "lucide-react";
 import { redirect } from "next/navigation";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
@@ -8,7 +8,11 @@ import { auth } from "@/auth";
 import { getOrderById } from "@/lib/orders";
 import { formatPkDateTime } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
-import type { OrderStatus, PaymentMethod } from "@/types";
+import type {
+  OrderStatus,
+  PaymentMethod,
+  PrescriptionStatus,
+} from "@/types";
 
 const statusStyles: Record<OrderStatus, string> = {
   pending: "bg-shop_orange/15 text-shop_orange",
@@ -24,6 +28,21 @@ const paymentLabels: Record<PaymentMethod, string> = {
   bank_transfer: "Bank Transfer",
   easypaisa: "EasyPaisa",
   jazzcash: "JazzCash",
+};
+
+const rxStyles: Record<
+  Exclude<PrescriptionStatus, "not_required">,
+  string
+> = {
+  pending_review: "bg-shop_orange/15 text-shop_orange",
+  approved: "bg-shop_light_green/15 text-shop_dark_green",
+  rejected: "bg-red-50 text-red-700",
+};
+
+const rxLabels: Record<Exclude<PrescriptionStatus, "not_required">, string> = {
+  pending_review: "Prescription under review",
+  approved: "Prescription approved",
+  rejected: "Prescription rejected",
 };
 
 interface OrderDetailViewProps {
@@ -78,6 +97,9 @@ const OrderDetailView = async ({
               {order.paymentMethod === "cash_on_delivery"
                 ? "Please keep cash ready for delivery."
                 : "We will verify your payment reference shortly."}
+              {order.prescriptionStatus === "pending_review"
+                ? " A pharmacist will review your prescription before dispatch."
+                : ""}
             </p>
           </div>
         </div>
@@ -184,6 +206,71 @@ const OrderDetailView = async ({
               )}
             </dl>
           </section>
+
+          {order.prescriptionStatus &&
+            order.prescriptionStatus !== "not_required" && (
+              <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-base font-semibold text-darkColor">
+                    Prescription
+                  </h2>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${rxStyles[order.prescriptionStatus]}`}
+                  >
+                    {rxLabels[order.prescriptionStatus]}
+                  </span>
+                </div>
+                {order.prescriptionUrl && (
+                  <a
+                    href={order.prescriptionUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mb-3 flex items-center gap-3 rounded-xl border border-black/10 bg-shop_light_bg/50 p-3 hover:border-shop_light_green"
+                  >
+                    {order.prescriptionMimeType === "application/pdf" ||
+                    order.prescriptionFileName
+                      ?.toLowerCase()
+                      .endsWith(".pdf") ? (
+                      <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white text-shop_dark_green">
+                        <FileText className="h-6 w-6" />
+                      </span>
+                    ) : (
+                      <span className="relative h-12 w-12 overflow-hidden rounded-lg border border-black/10 bg-white">
+                        <Image
+                          src={order.prescriptionUrl}
+                          alt="Your prescription"
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                        />
+                      </span>
+                    )}
+                    <span className="min-w-0 text-sm">
+                      <span className="block truncate font-medium text-darkColor">
+                        {order.prescriptionFileName || "Prescription file"}
+                      </span>
+                      <span className="text-xs text-shop_light_green">
+                        View uploaded file
+                      </span>
+                    </span>
+                  </a>
+                )}
+                {order.prescriptionReference && (
+                  <p className="text-sm text-lightColor">
+                    Note:{" "}
+                    <span className="text-darkColor">
+                      {order.prescriptionReference}
+                    </span>
+                  </p>
+                )}
+                {order.prescriptionAdminNote &&
+                  order.prescriptionStatus === "rejected" && (
+                    <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                      {order.prescriptionAdminNote}
+                    </p>
+                  )}
+              </section>
+            )}
 
           <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-base font-semibold text-darkColor">

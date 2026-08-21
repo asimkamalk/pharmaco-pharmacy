@@ -193,8 +193,9 @@ const CartView = () => {
                   className="mt-0.5 h-4 w-4 shrink-0 text-shop_orange"
                   aria-hidden
                 />
-                Your cart contains prescription items. You will be asked to
-                provide a prescription at checkout.
+                Your cart contains prescription items. At checkout you will
+                upload a photo or PDF of a valid prescription for pharmacist
+                review.
               </p>
             )}
 

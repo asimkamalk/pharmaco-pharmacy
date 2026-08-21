@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import {
   Banknote,
   Building2,
-  ClipboardList,
   CreditCard,
   Smartphone,
   Wallet,
@@ -15,6 +14,9 @@ import {
 import AddressManager from "./AddressManager";
 import Container from "./Container";
 import EmptyState from "./EmptyState";
+import PrescriptionUpload, {
+  type PrescriptionUploadValue,
+} from "./PrescriptionUpload";
 import { useCart } from "@/hooks/useCart";
 import { useAddresses } from "@/hooks/useAddresses";
 import { useIsHydrated } from "@/hooks";
@@ -74,6 +76,8 @@ const CheckoutView = () => {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("cash_on_delivery");
   const [paymentReference, setPaymentReference] = useState("");
+  const [prescription, setPrescription] =
+    useState<PrescriptionUploadValue>(null);
   const [prescriptionReference, setPrescriptionReference] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -118,6 +122,7 @@ const CheckoutView = () => {
       paymentMethod,
       paymentReference,
       prescriptionReference,
+      prescriptionUrl: prescription?.url,
       orderNotes,
       requiresPrescription,
     });
@@ -155,6 +160,9 @@ const CheckoutView = () => {
         paymentMethod,
         paymentReference: parsed.data.paymentReference,
         prescriptionReference: parsed.data.prescriptionReference,
+        prescriptionUrl: prescription?.url,
+        prescriptionFileName: prescription?.fileName,
+        prescriptionMimeType: prescription?.mimeType,
         orderNotes: parsed.data.orderNotes,
         items: items.map((item) => ({
           productId: item.product.id,
@@ -388,35 +396,15 @@ const CheckoutView = () => {
           </section>
 
           {requiresPrescription && (
-            <section className="rounded-2xl border border-shop_orange/30 bg-shop_light_pink/40 p-5 sm:p-6">
-              <div className="flex items-start gap-3">
-                <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-shop_orange" />
-                <div className="flex-1">
-                  <h2 className="text-base font-semibold text-darkColor">
-                    Prescription Required
-                  </h2>
-                  <p className="mt-1 text-sm text-lightColor">
-                    Your cart includes prescription medicines. Share a reference
-                    so we can verify before dispatch (WhatsApp the photo to{" "}
-                    {siteConfig.contact.whatsapp}, or note how you will provide
-                    it).
-                  </p>
-                  <input
-                    className={cn(inputClasses, "mt-3")}
-                    value={prescriptionReference}
-                    onChange={(event) =>
-                      setPrescriptionReference(event.target.value)
-                    }
-                    placeholder="e.g. Sent on WhatsApp / file name / doctor note"
-                  />
-                  {errors.prescriptionReference && (
-                    <p className="mt-1 text-xs text-shop_orange">
-                      {errors.prescriptionReference}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </section>
+            <PrescriptionUpload
+              value={prescription}
+              onChange={setPrescription}
+              note={prescriptionReference}
+              onNoteChange={setPrescriptionReference}
+              whatsapp={siteConfig.contact.whatsapp}
+              error={errors.prescriptionUrl}
+              noteError={errors.prescriptionReference}
+            />
           )}
 
           <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:p-6">
