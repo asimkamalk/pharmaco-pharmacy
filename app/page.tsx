@@ -4,13 +4,13 @@ import {
   ArrowRight,
   BadgeCheck,
   Clock,
-  HeartPulse,
   ShieldCheck,
   Stethoscope,
   Truck,
 } from "lucide-react";
 import Container from "@/components/Container";
 import GoogleMap from "@/components/GoogleMap";
+import HomeHero from "@/components/HomeHero";
 import ProductCard from "@/components/ProductCard";
 import {
   getBestSellers,
@@ -18,19 +18,21 @@ import {
   getCategories,
   getFeaturedProducts,
 } from "@/lib/products";
+import { getHeroSlides } from "@/lib/hero";
 import { getSiteConfig } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
 
 const whyIcons = [BadgeCheck, Stethoscope, Truck, ShieldCheck] as const;
 
 const Home = async () => {
-  const [categories, brands, featuredProducts, bestSellers, siteConfig] =
+  const [categories, brands, featuredProducts, bestSellers, siteConfig, heroSlides] =
     await Promise.all([
       getCategories(),
       getBrands(),
       getFeaturedProducts(8),
       getBestSellers(4),
       getSiteConfig(),
+      getHeroSlides(),
     ]);
 
   const whyChooseUs = siteConfig.home.whyChoose.map((item, index) => ({
@@ -40,59 +42,7 @@ const Home = async () => {
 
   return (
     <main className="bg-white">
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-shop_light_pink via-white to-shop_light_bg">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-shop_light_green/10 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-shop_orange/10 blur-3xl"
-        />
-        <Container className="relative grid grid-cols-1 items-center gap-8 py-14 sm:py-16 lg:grid-cols-2 lg:py-20">
-          <div className="space-y-5">
-            <p className="inline-flex items-center gap-2 rounded-full border border-shop_dark_green/10 bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-shop_dark_green shadow-sm">
-              <HeartPulse className="h-3.5 w-3.5" aria-hidden />
-              {siteConfig.home.heroEyebrow ||
-                `${siteConfig.name} — ${siteConfig.location.area}, ${siteConfig.location.city}`}
-            </p>
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-darkColor sm:text-4xl lg:text-5xl">
-              {siteConfig.home.heroHeadline}
-            </h1>
-            <p className="max-w-lg text-sm leading-relaxed text-lightColor sm:text-base">
-              {siteConfig.home.heroSubcopy}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={siteConfig.home.heroCtaPrimaryHref}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-shop_btn_dark_green px-6 text-sm font-semibold text-white transition-colors duration-200 hover:bg-shop_dark_green/90"
-              >
-                {siteConfig.home.heroCtaPrimaryLabel}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-              <Link
-                href={siteConfig.home.heroCtaSecondaryHref}
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-shop_dark_green/20 bg-white px-6 text-sm font-semibold text-shop_dark_green transition-colors duration-200 hover:border-shop_dark_green/50"
-              >
-                {siteConfig.home.heroCtaSecondaryLabel}
-              </Link>
-            </div>
-          </div>
-          <div className="hidden justify-center lg:flex">
-            <Image
-              src="/images/pharmaco-logo.png"
-              alt=""
-              aria-hidden
-              width={693}
-              height={693}
-              priority
-              sizes="400px"
-              className="h-auto w-80 object-contain opacity-90"
-            />
-          </div>
-        </Container>
-      </section>
+      <HomeHero slides={heroSlides} />
 
       {/* Popular categories */}
       <section aria-labelledby="popular-categories">

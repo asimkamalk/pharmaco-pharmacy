@@ -1,11 +1,17 @@
 import Link from "next/link";
+import AdminFlash from "@/components/admin/AdminFlash";
 import { prisma } from "@/lib/prisma";
 import { formatPrice, getDiscountedPrice } from "@/lib/utils";
 import { mapProduct } from "@/lib/mappers";
 
 export const metadata = { title: "Products · Admin" };
 
-const AdminProductsPage = async () => {
+interface PageProps {
+  searchParams: Promise<{ saved?: string; error?: string }>;
+}
+
+const AdminProductsPage = async ({ searchParams }: PageProps) => {
+  const { saved, error } = await searchParams;
   const rows = await prisma.product.findMany({
     include: {
       category: { select: { slug: true, title: true } },
@@ -32,6 +38,8 @@ const AdminProductsPage = async () => {
           Add product
         </Link>
       </div>
+
+      <AdminFlash saved={saved} error={error} savedMessage="Product saved." />
 
       <div className="overflow-x-auto rounded-2xl border border-black/10 bg-white shadow-sm">
         <table className="min-w-full text-left text-sm">

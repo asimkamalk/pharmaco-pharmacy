@@ -56,6 +56,8 @@ export function mapSettingsToConfig(row: {
   heroCtaPrimaryHref: string;
   heroCtaSecondaryLabel: string;
   heroCtaSecondaryHref: string;
+  heroBackgroundUrl: string;
+  heroImageUrl: string;
   promoHeadline: string;
   promoSubcopy: string;
   whyChooseJson: string;
@@ -130,6 +132,8 @@ export function mapSettingsToConfig(row: {
         row.heroCtaSecondaryLabel || d.home.heroCtaSecondaryLabel,
       heroCtaSecondaryHref:
         row.heroCtaSecondaryHref || d.home.heroCtaSecondaryHref,
+      heroBackgroundUrl: row.heroBackgroundUrl || "",
+      heroImageUrl: row.heroImageUrl || d.home.heroImageUrl,
       promoHeadline: row.promoHeadline || d.home.promoHeadline,
       promoSubcopy: row.promoSubcopy || d.home.promoSubcopy,
       whyChoose: parseWhyChoose(row.whyChooseJson),
@@ -210,6 +214,8 @@ export async function ensureSiteSettings() {
       heroCtaPrimaryHref: d.home.heroCtaPrimaryHref,
       heroCtaSecondaryLabel: d.home.heroCtaSecondaryLabel,
       heroCtaSecondaryHref: d.home.heroCtaSecondaryHref,
+      heroBackgroundUrl: d.home.heroBackgroundUrl,
+      heroImageUrl: d.home.heroImageUrl,
       promoHeadline: d.home.promoHeadline,
       promoSubcopy: d.home.promoSubcopy,
       whyChooseJson: JSON.stringify(d.home.whyChoose),

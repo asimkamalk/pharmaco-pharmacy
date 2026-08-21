@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminFlash from "@/components/admin/AdminFlash";
 import ProductForm from "@/components/admin/ProductForm";
 import { prisma } from "@/lib/prisma";
 
@@ -7,10 +8,12 @@ export const metadata = { title: "Edit Product · Admin" };
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }
 
-const EditProductPage = async ({ params }: PageProps) => {
+const EditProductPage = async ({ params, searchParams }: PageProps) => {
   const { id } = await params;
+  const { error } = await searchParams;
   const [product, categories, brands] = await Promise.all([
     prisma.product.findUnique({
       where: { id },
@@ -39,6 +42,7 @@ const EditProductPage = async ({ params }: PageProps) => {
           ← Back
         </Link>
       </div>
+      <AdminFlash error={error} />
       <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:p-6">
         <ProductForm
           categories={categories}

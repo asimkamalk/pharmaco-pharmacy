@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminFlash from "@/components/admin/AdminFlash";
 import { saveCategory } from "@/lib/actions/admin";
 import { prisma } from "@/lib/prisma";
 
@@ -7,7 +8,12 @@ export const metadata = { title: "Categories · Admin" };
 const field =
   "w-full rounded-lg border border-black/15 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-shop_light_green";
 
-const AdminCategoriesPage = async () => {
+interface PageProps {
+  searchParams: Promise<{ saved?: string; error?: string }>;
+}
+
+const AdminCategoriesPage = async ({ searchParams }: PageProps) => {
+  const { saved, error } = await searchParams;
   const categories = await prisma.category.findMany({
     orderBy: { title: "asc" },
     include: { _count: { select: { products: true } } },
@@ -22,11 +28,15 @@ const AdminCategoriesPage = async () => {
         </p>
       </div>
 
+      <AdminFlash
+        saved={saved}
+        error={error}
+        savedMessage="Category saved."
+      />
       <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
         <h2 className="mb-4 font-semibold text-darkColor">Add category</h2>
         <form
           action={saveCategory}
-          encType="multipart/form-data"
           className="grid gap-3 md:grid-cols-2"
         >
           <input name="title" required placeholder="Title" className={field} />
@@ -69,7 +79,6 @@ const AdminCategoriesPage = async () => {
           <form
             key={category.id}
             action={saveCategory}
-            encType="multipart/form-data"
             className="grid gap-3 rounded-2xl border border-black/10 bg-white p-5 shadow-sm md:grid-cols-2"
           >
             <input type="hidden" name="id" value={category.id} />

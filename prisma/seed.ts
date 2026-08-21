@@ -193,6 +193,8 @@ async function main() {
       heroCtaPrimaryHref: d.home.heroCtaPrimaryHref,
       heroCtaSecondaryLabel: d.home.heroCtaSecondaryLabel,
       heroCtaSecondaryHref: d.home.heroCtaSecondaryHref,
+      heroBackgroundUrl: d.home.heroBackgroundUrl,
+      heroImageUrl: d.home.heroImageUrl,
       promoHeadline: d.home.promoHeadline,
       promoSubcopy: d.home.promoSubcopy,
       whyChooseJson: JSON.stringify(d.home.whyChoose),
@@ -222,6 +224,24 @@ async function main() {
       where: { slug: page.slug },
       update: {},
       create: page,
+    });
+  }
+
+  const slideCount = await prisma.heroSlide.count();
+  if (slideCount === 0) {
+    await prisma.heroSlide.create({
+      data: {
+        sortOrder: 0,
+        eyebrow: `${d.name} — ${d.location.area}, ${d.location.city}`,
+        headline: d.home.heroHeadline,
+        subcopy: d.home.heroSubcopy,
+        ctaLabel: d.home.heroCtaPrimaryLabel,
+        ctaHref: d.home.heroCtaPrimaryHref,
+        ctaSecondaryLabel: d.home.heroCtaSecondaryLabel,
+        ctaSecondaryHref: d.home.heroCtaSecondaryHref,
+        backgroundUrl: "/images/pharmaco-logo.png",
+        isActive: true,
+      },
     });
   }
 

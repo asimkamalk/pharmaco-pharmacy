@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
+import { redirectWithFlash } from "@/lib/admin-flash";
 import { prisma } from "@/lib/prisma";
 import { sanitizeProductHtml } from "@/lib/sanitize";
 import { ensureSiteSettings } from "@/lib/site";
-import { saveUploadedImage } from "@/lib/upload";
+import { getFormFile, saveUploadedImage } from "@/lib/upload";
 
 function str(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -21,16 +21,35 @@ export async function saveSiteSettings(formData: FormData) {
   await requireAdmin();
   await ensureSiteSettings();
 
+  const name = str(formData, "name");
+  const phone = str(formData, "phone");
+  const email = str(formData, "email");
+  if (!name) {
+    redirectWithFlash("/admin/settings", { error: "Store name is required" });
+  }
+  if (!phone) {
+    redirectWithFlash("/admin/settings", { error: "Phone number is required" });
+  }
+  if (!email) {
+    redirectWithFlash("/admin/settings", { error: "Email is required" });
+  }
+
   let logoUrl = str(formData, "logoUrl") || "/images/pharmaco-logo-text.png";
-  const logoFile = formData.get("logo");
-  if (logoFile instanceof File && logoFile.size > 0) {
-    logoUrl = await saveUploadedImage(logoFile, "site");
+  try {
+    const logoFile = getFormFile(formData, "logo");
+    if (logoFile) {
+      logoUrl = await saveUploadedImage(logoFile, "site");
+    }
+  } catch (err) {
+    redirectWithFlash("/admin/settings", {
+      error: err instanceof Error ? err.message : "Could not upload the logo",
+    });
   }
 
   await prisma.siteSettings.update({
     where: { id: "default" },
     data: {
-      name: str(formData, "name") || "Pharmaco Pharmacy",
+      name: name || "Pharmaco Pharmacy",
       shortName: str(formData, "shortName") || "Pharmaco",
       tagline: str(formData, "tagline"),
       description: str(formData, "description"),
@@ -38,9 +57,9 @@ export async function saveSiteSettings(formData: FormData) {
       city: str(formData, "city"),
       country: str(formData, "country"),
       address: str(formData, "address"),
-      phone: str(formData, "phone"),
+      phone,
       whatsapp: str(formData, "whatsapp"),
-      email: str(formData, "email"),
+      email,
       openingHours: str(formData, "openingHours"),
       deliveryStandardFee: num(formData, "deliveryStandardFee", 150),
       freeDeliveryAbove: num(formData, "freeDeliveryAbove", 2000),
@@ -67,17 +86,40 @@ export async function saveSiteSettings(formData: FormData) {
 
   revalidatePath("/", "layout");
   revalidatePath("/admin/settings");
-  redirect("/admin/settings?saved=1");
+  redirectWithFlash("/admin/settings", { saved: true });
 }
 
-export async function saveHomepageSettings(formData: FormData) {
+export async function saveHeroSettings(formData: FormData) {
   await requireAdmin();
   await ensureSiteSettings();
 
-  const whyChoose = [1, 2, 3, 4].map((index) => ({
-    title: str(formData, `whyTitle${index}`),
-    description: str(formData, `whyDescription${index}`),
-  })).filter((item) => item.title);
+  let heroBackgroundUrl = str(formData, "heroBackgroundUrl");
+  if (!heroBackgroundUrl || heroBackgroundUrl.includes("placeholder.svg")) {
+    heroBackgroundUrl = "";
+  }
+  let heroImageUrl =
+    str(formData, "heroImageUrl") || "/images/pharmaco-logo.png";
+
+  try {
+    const backgroundFile = getFormFile(formData, "heroBackground");
+    if (backgroundFile) {
+      heroBackgroundUrl = await saveUploadedImage(backgroundFile, "site");
+    }
+
+    const sideFile = getFormFile(formData, "heroImage");
+    if (sideFile) {
+      heroImageUrl = await saveUploadedImage(sideFile, "site");
+    }
+  } catch (err) {
+    redirectWithFlash("/admin/hero", {
+      error:
+        err instanceof Error ? err.message : "Could not upload hero image",
+    });
+  }
+
+  if (formData.get("clearBackground") === "on") {
+    heroBackgroundUrl = "";
+  }
 
   await prisma.siteSettings.update({
     where: { id: "default" },
@@ -89,6 +131,30 @@ export async function saveHomepageSettings(formData: FormData) {
       heroCtaPrimaryHref: str(formData, "heroCtaPrimaryHref"),
       heroCtaSecondaryLabel: str(formData, "heroCtaSecondaryLabel"),
       heroCtaSecondaryHref: str(formData, "heroCtaSecondaryHref"),
+      heroBackgroundUrl,
+      heroImageUrl,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/hero");
+  redirectWithFlash("/admin/hero", { saved: true });
+}
+
+export async function saveHomepageSettings(formData: FormData) {
+  await requireAdmin();
+  await ensureSiteSettings();
+
+  const whyChoose = [1, 2, 3, 4]
+    .map((index) => ({
+      title: str(formData, `whyTitle${index}`),
+      description: str(formData, `whyDescription${index}`),
+    }))
+    .filter((item) => item.title);
+
+  await prisma.siteSettings.update({
+    where: { id: "default" },
+    data: {
       promoHeadline: str(formData, "promoHeadline"),
       promoSubcopy: str(formData, "promoSubcopy"),
       whyChooseJson: JSON.stringify(whyChoose),
@@ -97,7 +163,7 @@ export async function saveHomepageSettings(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/admin/homepage");
-  redirect("/admin/homepage?saved=1");
+  redirectWithFlash("/admin/homepage", { saved: true });
 }
 
 export async function saveCmsPage(formData: FormData) {
@@ -109,7 +175,11 @@ export async function saveCmsPage(formData: FormData) {
     formData.get("isPublished") === "on" ||
     formData.get("isPublished") === "true";
 
-  if (!slug || !title) throw new Error("Slug and title are required");
+  if (!slug || !title) {
+    redirectWithFlash(slug ? `/admin/pages/${slug}` : "/admin/pages", {
+      error: "Title is required",
+    });
+  }
 
   await prisma.cmsPage.upsert({
     where: { slug },
@@ -122,5 +192,5 @@ export async function saveCmsPage(formData: FormData) {
   revalidatePath("/terms");
   revalidatePath("/about");
   revalidatePath("/admin/pages");
-  redirect(`/admin/pages/${slug}?saved=1`);
+  redirectWithFlash(`/admin/pages/${slug}`, { saved: true });
 }
