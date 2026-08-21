@@ -2,11 +2,23 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Sample product images are local SVG placeholders. Safe to serve with a
-    // restrictive CSP; remove once real product photos replace them.
     dangerouslyAllowSVG: true,
     contentSecurityPolicy:
       "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "platform-lookaside.fbsbx.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.fbcdn.net",
+      },
+    ],
   },
 };
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Container from "@/components/Container";
+import { auth } from "@/auth";
 import { siteConfig } from "@/constants/site";
 
 export const metadata: Metadata = {
@@ -12,7 +14,7 @@ const accountLinks = [
   {
     href: "/account/profile",
     title: "Profile",
-    description: "View your Clerk profile and account settings",
+    description: "View your account name and email",
   },
   {
     href: "/account/addresses",
@@ -26,7 +28,12 @@ const accountLinks = [
   },
 ];
 
-const AccountPage = () => {
+const AccountPage = async () => {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/sign-in?callbackUrl=/account");
+  }
+
   return (
     <main className="bg-gradient-to-b from-shop_light_pink/40 to-white">
       <Container className="py-10 sm:py-12">
@@ -34,7 +41,8 @@ const AccountPage = () => {
           My Account
         </h1>
         <p className="mt-1.5 text-sm text-lightColor">
-          Manage your profile, delivery addresses and orders.
+          Welcome{session.user.name ? `, ${session.user.name}` : ""}. Manage
+          your profile, delivery addresses and orders.
         </p>
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">

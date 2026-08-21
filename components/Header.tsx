@@ -6,8 +6,11 @@ import Logo from "./Logo";
 import SearchBar from "./SearchBar";
 import Signin from "./Signin";
 import MobileMenu from "./MobileMenu";
+import { auth } from "@/auth";
 
-const Header = () => {
+const Header = async () => {
+  const session = await auth();
+
   return (
     <header className="sticky top-0 z-40 border-b border-shop_dark_green/10 bg-white/90 backdrop-blur-md">
       <Container className="flex items-center justify-between py-3.5 text-lightColor sm:py-4">
@@ -20,7 +23,7 @@ const Header = () => {
           <SearchBar />
           <CartIcon />
           <FavouriteButton />
-          <Signin />
+          <Signin initialUser={session?.user ?? null} />
         </div>
       </Container>
     </header>

@@ -4,8 +4,8 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-import { ClerkProvider } from "@clerk/nextjs";
+import AuthSessionProvider from "@/components/AuthSessionProvider";
+import { auth } from "@/auth";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -31,20 +31,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
-    <ClerkProvider>
-      <html lang="en" className={poppins.variable}>
-        <body className="font-poppins antialiased">
+    <html lang="en" className={poppins.variable}>
+      <body className="font-poppins antialiased">
+        <AuthSessionProvider session={session}>
           <Header />
           {children}
           <Footer />
-        </body>
-      </html>
-    </ClerkProvider>
+        </AuthSessionProvider>
+      </body>
+    </html>
   );
 }
