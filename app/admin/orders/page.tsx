@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import AdminFlash from "@/components/admin/AdminFlash";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import { getAllOrders } from "@/lib/orders";
+import { formatPkDateTime } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata = { title: "Orders · Admin" };
@@ -119,7 +120,7 @@ const AdminOrdersPage = async ({ searchParams }: PageProps) => {
                       {order.orderNumber}
                     </p>
                     <p className="text-xs text-lightColor">
-                      {new Date(order.createdAt).toLocaleString("en-PK")}
+                      {formatPkDateTime(order.createdAt)}
                     </p>
                   </td>
                   <td className="px-4 py-3">

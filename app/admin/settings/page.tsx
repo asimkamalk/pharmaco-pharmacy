@@ -100,7 +100,7 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
                 ["phone", "Phone", site.contact.phone],
                 ["whatsapp", "WhatsApp", site.contact.whatsapp],
                 ["email", "Email", site.contact.email],
-                ["openingHours", "Opening hours", site.contact.openingHours],
+                ["openingHours", "Opening hours (e.g. Open 24/7 · Mon–Sun)", site.contact.openingHours],
               ] as const
             ).map(([name, label, value]) => (
               <label key={name} className="space-y-1 text-sm">
@@ -138,7 +138,7 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
               />
             </label>
             <label className="space-y-1 text-sm md:col-span-2">
-              <span>Delivery estimate copy</span>
+              <span>Delivery estimate (e.g. 24/7 Mon–Sun)</span>
               <input
                 name="deliveryEstimate"
                 defaultValue={site.delivery.estimate}

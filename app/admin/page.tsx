@@ -119,6 +119,7 @@ const AdminDashboardPage = async ({ searchParams }: PageProps) => {
         rangeProfit={stats.rangeProfit}
         categoryCount={stats.categoryCount}
         brandCount={stats.brandCount}
+        seriesGranularity={stats.seriesGranularity}
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

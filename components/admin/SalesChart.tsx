@@ -9,10 +9,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { formatPkChartTick, formatPkHourLabel } from "@/lib/datetime";
 import { formatPrice } from "@/lib/utils";
 
 interface SalesChartProps {
   data: { date: string; revenue: number; profit: number; orders: number }[];
+  granularity?: "hour" | "day";
 }
 
 function formatAxisValue(value: number) {
@@ -30,21 +32,22 @@ function formatAxisValue(value: number) {
   return String(Math.round(amount));
 }
 
-function formatTickLabel(value: string, pointCount: number) {
+function formatTickLabel(
+  value: string,
+  pointCount: number,
+  granularity: "hour" | "day",
+) {
   if (!value) return "";
-  // Monthly buckets: 2025-07-01 → Jul 2025
-  if (pointCount <= 14 && value.endsWith("-01") && value.length === 10) {
-    const date = new Date(value);
-    return date.toLocaleDateString("en-PK", {
-      month: "short",
-      year: "2-digit",
-    });
+  if (granularity === "hour") {
+    return formatPkHourLabel(value);
   }
-  // Default: MM-DD
-  return value.slice(5);
+  if (pointCount <= 14 && value.endsWith("-01") && value.length === 10) {
+    return formatPkChartTick(value, { monthYear: true });
+  }
+  return formatPkChartTick(value);
 }
 
-const SalesChart = ({ data }: SalesChartProps) => {
+const SalesChart = ({ data, granularity = "day" }: SalesChartProps) => {
   const maxValue = Math.max(
     0,
     ...data.map((point) => Math.max(point.revenue, point.profit)),
@@ -68,10 +71,11 @@ const SalesChart = ({ data }: SalesChartProps) => {
           <XAxis
             dataKey="date"
             tickFormatter={(value: string) =>
-              formatTickLabel(value, data.length)
+              formatTickLabel(value, data.length, granularity)
             }
             tick={{ fontSize: 11, fill: "#52525b" }}
-            minTickGap={28}
+            minTickGap={granularity === "hour" ? 18 : 28}
+            interval={granularity === "hour" ? 2 : "preserveStartEnd"}
           />
           <YAxis
             tickFormatter={formatAxisValue}
@@ -85,7 +89,11 @@ const SalesChart = ({ data }: SalesChartProps) => {
               formatPrice(Number(value ?? 0)),
               name === "revenue" ? "Revenue" : "Profit",
             ]}
-            labelFormatter={(label) => `Date: ${label}`}
+            labelFormatter={(label) =>
+              granularity === "hour"
+                ? `Hour: ${formatPkHourLabel(String(label))}`
+                : `Date: ${label}`
+            }
           />
           <Area
             type="monotone"

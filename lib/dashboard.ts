@@ -1,25 +1,17 @@
 import { prisma } from "@/lib/prisma";
-
-function startOfDay(date: Date) {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
-function endOfDay(date: Date) {
-  const copy = new Date(date);
-  copy.setHours(23, 59, 59, 999);
-  return copy;
-}
-
-function toDateKey(date: Date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
+import {
+  endOfPkDay,
+  endOfPkDayFromKey,
+  pkHourKey,
+  shiftPkDateKey,
+  startOfPkDay,
+  startOfPkDayFromKey,
+  toPkDateKey,
+  toPkHour,
+} from "@/lib/datetime";
 
 export type SalesRangePreset =
+  | "today"
   | "7d"
   | "30d"
   | "3m"
@@ -27,60 +19,79 @@ export type SalesRangePreset =
   | "1y"
   | "custom";
 
+export type SalesSeriesGranularity = "hour" | "day";
+
 export function resolveSalesRange(input: {
   preset?: string | null;
   from?: string | null;
   to?: string | null;
 }) {
-  const now = endOfDay(new Date());
+  const todayKey = toPkDateKey();
+  const nowEnd = endOfPkDayFromKey(todayKey);
   const preset = (input.preset || "30d") as SalesRangePreset;
 
   if (preset === "custom" && input.from && input.to) {
-    const from = startOfDay(new Date(input.from));
-    const to = endOfDay(new Date(input.to));
-    if (!Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime()) && from <= to) {
+    const fromKey = input.from;
+    const toKey = input.to;
+    const from = startOfPkDayFromKey(fromKey);
+    const to = endOfPkDayFromKey(toKey);
+    if (
+      !Number.isNaN(from.getTime()) &&
+      !Number.isNaN(to.getTime()) &&
+      from <= to
+    ) {
       return { preset, from, to, label: "Custom range" };
     }
   }
 
-  const from = startOfDay(new Date(now));
+  let fromKey = todayKey;
   let label = "Last 30 days";
+  let resolvedPreset: SalesRangePreset = preset;
 
   switch (preset) {
+    case "today":
+      fromKey = todayKey;
+      label = "Today";
+      break;
     case "7d":
-      from.setDate(from.getDate() - 6);
+      fromKey = shiftPkDateKey(todayKey, -6);
       label = "Last 7 days";
       break;
     case "3m":
-      from.setMonth(from.getMonth() - 3);
+      fromKey = shiftPkDateKey(todayKey, -90);
       label = "Last 3 months";
       break;
     case "6m":
-      from.setMonth(from.getMonth() - 6);
+      fromKey = shiftPkDateKey(todayKey, -180);
       label = "Last 6 months";
       break;
     case "1y":
-      from.setFullYear(from.getFullYear() - 1);
+      fromKey = shiftPkDateKey(todayKey, -365);
       label = "Last 1 year";
       break;
     case "30d":
     default:
-      from.setDate(from.getDate() - 29);
+      fromKey = shiftPkDateKey(todayKey, -29);
       label = "Last 30 days";
+      resolvedPreset = "30d";
       break;
   }
 
   return {
-    preset: preset === "custom" ? ("30d" as const) : preset,
-    from,
-    to: now,
+    preset: resolvedPreset === "custom" ? ("30d" as const) : resolvedPreset,
+    from: startOfPkDayFromKey(fromKey),
+    to: nowEnd,
     label,
   };
 }
 
-export async function getSalesSeries(from: Date, to: Date) {
-  const start = startOfDay(from);
-  const end = endOfDay(to);
+export async function getSalesSeries(
+  from: Date,
+  to: Date,
+  granularity: SalesSeriesGranularity = "day",
+) {
+  const start = startOfPkDay(from);
+  const end = endOfPkDay(to);
 
   const salesOrders = await prisma.order.findMany({
     where: {
@@ -94,23 +105,80 @@ export async function getSalesSeries(from: Date, to: Date) {
     },
   });
 
+  if (granularity === "hour") {
+    return buildHourlySeries(salesOrders, start);
+  }
+
+  return buildDailySeries(salesOrders, start, end);
+}
+
+function buildHourlySeries(
+  salesOrders: { createdAt: Date; grandTotal: number; costTotal: number }[],
+  dayStart: Date,
+) {
+  const hourMap = new Map<
+    string,
+    { date: string; revenue: number; profit: number; orders: number }
+  >();
+
+  for (let hour = 0; hour < 24; hour += 1) {
+    const key = pkHourKey(hour);
+    hourMap.set(key, { date: key, revenue: 0, profit: 0, orders: 0 });
+  }
+
+  let revenue = 0;
+  let profit = 0;
+  const dayKey = toPkDateKey(dayStart);
+
+  for (const order of salesOrders) {
+    if (toPkDateKey(order.createdAt) !== dayKey) continue;
+    const key = pkHourKey(toPkHour(order.createdAt));
+    const bucket = hourMap.get(key);
+    if (!bucket) continue;
+    bucket.revenue += order.grandTotal;
+    bucket.profit += order.grandTotal - order.costTotal;
+    bucket.orders += 1;
+    revenue += order.grandTotal;
+    profit += order.grandTotal - order.costTotal;
+  }
+
+  return {
+    series: Array.from(hourMap.values()),
+    revenue,
+    profit,
+    dayCount: 1,
+    granularity: "hour" as const,
+  };
+}
+
+function buildDailySeries(
+  salesOrders: { createdAt: Date; grandTotal: number; costTotal: number }[],
+  start: Date,
+  end: Date,
+) {
   const dayMap = new Map<
     string,
     { date: string; revenue: number; profit: number; orders: number }
   >();
 
-  const cursor = new Date(start);
-  while (cursor <= end) {
-    const key = toDateKey(cursor);
-    dayMap.set(key, { date: key, revenue: 0, profit: 0, orders: 0 });
-    cursor.setDate(cursor.getDate() + 1);
+  let cursorKey = toPkDateKey(start);
+  const endKey = toPkDateKey(end);
+  while (cursorKey <= endKey) {
+    dayMap.set(cursorKey, {
+      date: cursorKey,
+      revenue: 0,
+      profit: 0,
+      orders: 0,
+    });
+    if (cursorKey === endKey) break;
+    cursorKey = shiftPkDateKey(cursorKey, 1);
   }
 
   let revenue = 0;
   let profit = 0;
 
   for (const order of salesOrders) {
-    const key = toDateKey(order.createdAt);
+    const key = toPkDateKey(order.createdAt);
     const bucket = dayMap.get(key);
     if (!bucket) continue;
     bucket.revenue += order.grandTotal;
@@ -120,7 +188,6 @@ export async function getSalesSeries(from: Date, to: Date) {
     profit += order.grandTotal - order.costTotal;
   }
 
-  // For long ranges, aggregate by week/month to keep the chart readable
   const dayCount = dayMap.size;
   let series = Array.from(dayMap.values());
 
@@ -130,7 +197,13 @@ export async function getSalesSeries(from: Date, to: Date) {
     series = aggregateByWeek(series);
   }
 
-  return { series, revenue, profit, dayCount };
+  return {
+    series,
+    revenue,
+    profit,
+    dayCount,
+    granularity: "day" as const,
+  };
 }
 
 function aggregateByWeek(
@@ -142,10 +215,22 @@ function aggregateByWeek(
   >();
 
   for (const day of days) {
-    const date = new Date(day.date);
-    const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() - date.getDay());
-    const key = toDateKey(weekStart);
+    const date = startOfPkDayFromKey(day.date);
+    const weekday = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Karachi",
+      weekday: "short",
+    }).format(date);
+    const offsets: Record<string, number> = {
+      Sun: 0,
+      Mon: 1,
+      Tue: 2,
+      Wed: 3,
+      Thu: 4,
+      Fri: 5,
+      Sat: 6,
+    };
+    const sundayOffset = offsets[weekday] ?? 0;
+    const key = shiftPkDateKey(day.date, -sundayOffset);
     const bucket = weeks.get(key) ?? {
       date: key,
       revenue: 0,
@@ -236,7 +321,11 @@ export async function getDashboardStats(range?: {
         paymentMethod: true,
       },
     }),
-    getSalesSeries(resolved.from, resolved.to),
+    getSalesSeries(
+      resolved.from,
+      resolved.to,
+      resolved.preset === "today" ? "hour" : "day",
+    ),
   ]);
 
   return {
@@ -254,8 +343,9 @@ export async function getDashboardStats(range?: {
     rangeProfit: sales.profit,
     rangeLabel: resolved.label,
     rangePreset: resolved.preset,
-    rangeFrom: toDateKey(resolved.from),
-    rangeTo: toDateKey(resolved.to),
+    rangeFrom: toPkDateKey(resolved.from),
+    rangeTo: toPkDateKey(resolved.to),
     salesSeries: sales.series,
+    seriesGranularity: sales.granularity,
   };
 }

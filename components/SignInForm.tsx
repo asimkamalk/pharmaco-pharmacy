@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { FaFacebookF, FaGoogle } from "react-icons/fa6";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
 
 const inputClasses =
   "w-full rounded-lg border border-black/15 bg-white px-3.5 py-2.5 text-sm text-darkColor outline-none transition-colors duration-200 placeholder:text-lightColor/60 focus:border-shop_light_green";
@@ -15,16 +16,27 @@ interface SignInFormProps {
 }
 
 const SignInForm = ({ googleEnabled, facebookEnabled }: SignInFormProps) => {
+  const site = useSiteConfig();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/account";
   const errorParam = searchParams.get("error");
 
+  const contactHint = site.contact.whatsapp || site.contact.phone || site.contact.email;
+  const restrictedMessage = contactHint
+    ? `You are restricted. Please contact Pharmaco Pharmacy (${contactHint}).`
+    : "You are restricted. Please contact Pharmaco Pharmacy for help.";
+
+  const initialError =
+    errorParam === "Restricted" || errorParam === "restricted"
+      ? restrictedMessage
+      : errorParam
+        ? "Sign-in failed. Please check your details and try again."
+        : null;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(
-    errorParam ? "Sign-in failed. Please check your details and try again." : null,
-  );
+  const [error, setError] = useState<string | null>(initialError);
   const [pending, setPending] = useState(false);
 
   const finishSignIn = async () => {
@@ -46,7 +58,15 @@ const SignInForm = ({ googleEnabled, facebookEnabled }: SignInFormProps) => {
     setPending(false);
 
     if (result?.error) {
-      setError("Invalid email/username or password.");
+      const code = (result as { code?: string }).code?.toLowerCase();
+      if (
+        code === "restricted" ||
+        result.error.toLowerCase().includes("restricted")
+      ) {
+        setError(restrictedMessage);
+      } else {
+        setError("Invalid email/username or password.");
+      }
       return;
     }
 
@@ -145,7 +165,14 @@ const SignInForm = ({ googleEnabled, facebookEnabled }: SignInFormProps) => {
         </div>
 
         {error && (
-          <p role="alert" className="text-sm text-shop_orange">
+          <p
+            role="alert"
+            className={`rounded-lg px-3 py-2.5 text-sm ${
+              error.includes("restricted")
+                ? "border border-shop_orange/30 bg-shop_orange/10 text-shop_orange"
+                : "text-shop_orange"
+            }`}
+          >
             {error}
           </p>
         )}

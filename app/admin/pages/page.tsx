@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { formatPkDate } from "@/lib/datetime";
 
 export const metadata = { title: "Pages · Admin" };
 
@@ -35,7 +36,7 @@ const AdminPagesIndex = async () => {
                 <p className="text-xs text-lightColor">
                   /{item.slug}
                   {page
-                    ? ` · ${page.isPublished ? "Published" : "Draft"} · updated ${page.updatedAt.toLocaleDateString("en-PK")}`
+                    ? ` · ${page.isPublished ? "Published" : "Draft"} · updated ${formatPkDate(page.updatedAt)}`
                     : " · Not created yet"}
                 </p>
               </div>

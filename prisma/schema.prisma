@@ -21,6 +21,8 @@ model User {
   username      String?   @unique
   passwordHash  String?
   role          Role      @default(USER)
+  /** When true, customer cannot sign in */
+  isRestricted  Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
