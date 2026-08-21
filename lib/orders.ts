@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getDiscountedPrice } from "@/lib/utils";
-import { siteConfig } from "@/constants/site";
+import { getSiteConfig } from "@/lib/site";
 import type {
   AddressLabel,
   Order,
@@ -184,6 +184,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     (total, line) => total + line.product.purchasePrice * line.quantity,
     0,
   );
+  const siteConfig = await getSiteConfig();
   const deliveryFee =
     subtotal >= siteConfig.delivery.freeDeliveryAbove
       ? 0

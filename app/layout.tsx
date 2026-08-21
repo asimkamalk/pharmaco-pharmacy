@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { headers } from "next/headers";
 
 import "./globals.css";
 import AuthSessionProvider from "@/components/AuthSessionProvider";
+import SiteConfigProvider from "@/components/SiteConfigProvider";
+import StoreChrome from "@/components/StoreChrome";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { auth } from "@/auth";
+import { getSiteConfig } from "@/lib/site";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -15,39 +17,40 @@ const poppins = Poppins({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    template: "%s - Pharmaco Pharmacy",
-    default: "Pharmaco Pharmacy | Hayatabad, Peshawar",
-  },
-  description:
-    "Pharmaco Pharmacy is a trusted pharmacy in Hayatabad, Peshawar, offering medicines, healthcare products, wellness essentials, and personal care items.",
-  openGraph: {
-    siteName: "Pharmaco Pharmacy",
-    type: "website",
-    locale: "en_US",
-    title: "Pharmaco Pharmacy | Hayatabad, Peshawar",
-    description:
-      "Medicines, healthcare products, wellness essentials and personal care items from a trusted pharmacy in Hayatabad, Peshawar.",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteConfig();
+  return {
+    title: {
+      template: `%s - ${site.shortName}`,
+      default: site.seo.title || site.name,
+    },
+    description: site.seo.description || site.description,
+    openGraph: {
+      siteName: site.name,
+      type: "website",
+      locale: "en_US",
+      title: site.seo.title || site.name,
+      description: site.seo.description || site.description,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
-  const pathname = (await headers()).get("x-pathname") ?? "";
-  const isAdmin = pathname.startsWith("/admin");
+  const [session, site] = await Promise.all([auth(), getSiteConfig()]);
 
   return (
     <html lang="en" className={poppins.variable}>
       <body className="font-poppins antialiased">
         <AuthSessionProvider session={session}>
-          {!isAdmin && <Header />}
-          {children}
-          {!isAdmin && <Footer />}
+          <SiteConfigProvider value={site}>
+            <StoreChrome header={<Header />} footer={<Footer />}>
+              {children}
+            </StoreChrome>
+          </SiteConfigProvider>
         </AuthSessionProvider>
       </body>
     </html>

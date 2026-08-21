@@ -1,3 +1,5 @@
+"use client";
+
 import {
   FaFacebookF,
   FaInstagram,
@@ -12,6 +14,7 @@ import {
 } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
 
 interface Props {
   className?: string;
@@ -19,30 +22,33 @@ interface Props {
   tooltipClassName?: string;
 }
 
-const socialLink = [
-  {
-    title: "Facebook",
-    href: "https://www.facebook.com/",
-    icon: <FaFacebookF className="h-5 w-5" />,
-  },
-  {
-    title: "Instagram",
-    href: "https://www.instagram.com/",
-    icon: <FaInstagram className="h-5 w-5" />,
-  },
-  {
-    title: "TikTok",
-    href: "https://www.tiktok.com/",
-    icon: <FaTiktok className="h-5 w-5" />,
-  },
-  {
-    title: "Twitter",
-    href: "https://x.com/",
-    icon: <FaXTwitter className="h-5 w-5" />,
-  },
-];
-
 const SocialMedia = ({ className, iconClassName, tooltipClassName }: Props) => {
+  const site = useSiteConfig();
+  const socialLink = [
+    {
+      title: "Facebook",
+      href: site.social.facebook,
+      icon: <FaFacebookF className="h-5 w-5" />,
+    },
+    {
+      title: "Instagram",
+      href: site.social.instagram,
+      icon: <FaInstagram className="h-5 w-5" />,
+    },
+    {
+      title: "TikTok",
+      href: site.social.tiktok,
+      icon: <FaTiktok className="h-5 w-5" />,
+    },
+    {
+      title: "Twitter",
+      href: site.social.twitter,
+      icon: <FaXTwitter className="h-5 w-5" />,
+    },
+  ].filter((item) => item.href);
+
+  if (socialLink.length === 0) return null;
+
   return (
     <TooltipProvider>
       <div className={cn("flex items-center gap-3.5", className)}>

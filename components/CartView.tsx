@@ -10,9 +10,10 @@ import PriceView from "./PriceView";
 import { useCart } from "@/hooks/useCart";
 import { useIsHydrated } from "@/hooks";
 import { formatPrice, getDiscountedPrice } from "@/lib/utils";
-import { siteConfig } from "@/constants/site";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
 
 const CartView = () => {
+  const siteConfig = useSiteConfig();
   const isHydrated = useIsHydrated();
   const items = useCart((state) => state.items);
   const removeItem = useCart((state) => state.removeItem);

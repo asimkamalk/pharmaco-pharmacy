@@ -21,7 +21,7 @@ import { useIsHydrated } from "@/hooks";
 import { placeOrder } from "@/lib/orders";
 import { checkoutFormSchema } from "@/lib/validations";
 import { formatPrice, getDiscountedPrice, cn } from "@/lib/utils";
-import { siteConfig } from "@/constants/site";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
 import type { PaymentMethod } from "@/types";
 
 const inputClasses =
@@ -60,6 +60,7 @@ const paymentOptions: {
 ];
 
 const CheckoutView = () => {
+  const siteConfig = useSiteConfig();
   const router = useRouter();
   const isHydrated = useIsHydrated();
   const items = useCart((state) => state.items);

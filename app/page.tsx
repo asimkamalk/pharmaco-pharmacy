@@ -18,44 +18,25 @@ import {
   getCategories,
   getFeaturedProducts,
 } from "@/lib/products";
-import { siteConfig } from "@/constants/site";
+import { getSiteConfig } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
 
-const whyChooseUs = [
-  {
-    icon: BadgeCheck,
-    title: "Genuine Products",
-    description:
-      "Medicines and healthcare products sourced from authorised distributors.",
-  },
-  {
-    icon: Stethoscope,
-    title: "Licensed Pharmacists",
-    description:
-      "Orders are reviewed and dispensed under professional supervision.",
-  },
-  {
-    icon: Truck,
-    title: "Fast Local Delivery",
-    description: siteConfig.delivery.estimate,
-  },
-  {
-    icon: ShieldCheck,
-    title: "Safe & Secure",
-    description:
-      "Prescription-required items are clearly marked and verified at checkout.",
-  },
-];
+const whyIcons = [BadgeCheck, Stethoscope, Truck, ShieldCheck] as const;
 
 const Home = async () => {
-  const [categories, brands, featuredProducts, bestSellers] = await Promise.all(
-    [
+  const [categories, brands, featuredProducts, bestSellers, siteConfig] =
+    await Promise.all([
       getCategories(),
       getBrands(),
       getFeaturedProducts(8),
       getBestSellers(4),
-    ],
-  );
+      getSiteConfig(),
+    ]);
+
+  const whyChooseUs = siteConfig.home.whyChoose.map((item, index) => ({
+    ...item,
+    icon: whyIcons[index % whyIcons.length],
+  }));
 
   return (
     <main className="bg-white">
@@ -73,31 +54,28 @@ const Home = async () => {
           <div className="space-y-5">
             <p className="inline-flex items-center gap-2 rounded-full border border-shop_dark_green/10 bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-shop_dark_green shadow-sm">
               <HeartPulse className="h-3.5 w-3.5" aria-hidden />
-              {siteConfig.name} — {siteConfig.location.area},{" "}
-              {siteConfig.location.city}
+              {siteConfig.home.heroEyebrow ||
+                `${siteConfig.name} — ${siteConfig.location.area}, ${siteConfig.location.city}`}
             </p>
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-darkColor sm:text-4xl lg:text-5xl">
-              Your health, delivered{" "}
-              <span className="text-shop_dark_green">with care</span>
+              {siteConfig.home.heroHeadline}
             </h1>
             <p className="max-w-lg text-sm leading-relaxed text-lightColor sm:text-base">
-              Order medicines, vitamins, personal care and medical supplies
-              from your trusted neighbourhood pharmacy — with convenient
-              delivery across {siteConfig.location.city}.
+              {siteConfig.home.heroSubcopy}
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/shop"
+                href={siteConfig.home.heroCtaPrimaryHref}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-shop_btn_dark_green px-6 text-sm font-semibold text-white transition-colors duration-200 hover:bg-shop_dark_green/90"
               >
-                Shop Now
+                {siteConfig.home.heroCtaPrimaryLabel}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <Link
-                href="/categories"
+                href={siteConfig.home.heroCtaSecondaryHref}
                 className="inline-flex h-11 items-center justify-center rounded-lg border border-shop_dark_green/20 bg-white px-6 text-sm font-semibold text-shop_dark_green transition-colors duration-200 hover:border-shop_dark_green/50"
               >
-                Browse Categories
+                {siteConfig.home.heroCtaSecondaryLabel}
               </Link>
             </div>
           </div>
@@ -252,12 +230,12 @@ const Home = async () => {
           <div className="flex flex-col items-center justify-between gap-6 rounded-2xl bg-shop_dark_green px-6 py-10 text-center sm:px-10 lg:flex-row lg:text-left">
             <div>
               <h2 className="text-xl font-bold text-white sm:text-2xl">
-                Free delivery on orders above{" "}
-                {formatPrice(siteConfig.delivery.freeDeliveryAbove)}
+                {siteConfig.home.promoHeadline ||
+                  `Free delivery on orders above ${formatPrice(siteConfig.delivery.freeDeliveryAbove)}`}
               </h2>
               <p className="mt-2 text-sm text-white/80">
-                {siteConfig.delivery.estimate}. Pay with COD, bank transfer,
-                EasyPaisa or JazzCash.
+                {siteConfig.home.promoSubcopy ||
+                  `${siteConfig.delivery.estimate}. Pay with COD, bank transfer, EasyPaisa or JazzCash.`}
               </p>
             </div>
             <Link

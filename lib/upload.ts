@@ -11,8 +11,9 @@ const ALLOWED_TYPES: Record<string, string> = {
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
-export async function saveUploadedProductImage(
+export async function saveUploadedImage(
   file: File,
+  folder: "products" | "categories" | "brands" | "site" = "products",
 ): Promise<string> {
   const extension = ALLOWED_TYPES[file.type];
   if (!extension) {
@@ -22,7 +23,7 @@ export async function saveUploadedProductImage(
     throw new Error("Image must be under 5MB");
   }
 
-  const relativeDir = path.join("uploads", "products");
+  const relativeDir = path.join("uploads", folder);
   const absoluteDir = path.join(process.cwd(), "public", relativeDir);
   await mkdir(absoluteDir, { recursive: true });
 
@@ -31,4 +32,8 @@ export async function saveUploadedProductImage(
   await writeFile(path.join(absoluteDir, filename), buffer);
 
   return `/${relativeDir.replace(/\\/g, "/")}/${filename}`;
+}
+
+export async function saveUploadedProductImage(file: File) {
+  return saveUploadedImage(file, "products");
 }

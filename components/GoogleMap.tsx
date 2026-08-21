@@ -1,5 +1,7 @@
+"use client";
+
 import { MapPin } from "lucide-react";
-import { siteConfig } from "@/constants/site";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
 import { cn } from "@/lib/utils";
 
 interface GoogleMapProps {
@@ -8,15 +10,20 @@ interface GoogleMapProps {
   description?: string;
 }
 
-const GoogleMap = ({
-  className,
-  title = "Find us in Hayatabad",
-  description = `Visit ${siteConfig.name} in ${siteConfig.location.area}, ${siteConfig.location.city}.`,
-}: GoogleMapProps) => {
+const GoogleMap = ({ className, title, description }: GoogleMapProps) => {
+  const siteConfig = useSiteConfig();
+  const mapTitle = title ?? "Find us in Hayatabad";
+  const mapDescription =
+    description ??
+    `Visit ${siteConfig.name} in ${siteConfig.location.area}, ${siteConfig.location.city}.`;
+
   return (
     <section
       aria-labelledby="pharmacy-map"
-      className={cn("overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm", className)}
+      className={cn(
+        "overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm",
+        className,
+      )}
     >
       <div className="flex flex-col gap-2 border-b border-black/5 bg-gradient-to-r from-shop_light_pink to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -25,9 +32,9 @@ const GoogleMap = ({
             className="flex items-center gap-2 text-lg font-semibold text-darkColor"
           >
             <MapPin className="h-5 w-5 text-shop_light_green" aria-hidden />
-            {title}
+            {mapTitle}
           </h2>
-          <p className="mt-1 text-sm text-lightColor">{description}</p>
+          <p className="mt-1 text-sm text-lightColor">{mapDescription}</p>
         </div>
         <a
           href={siteConfig.map.linkUrl}

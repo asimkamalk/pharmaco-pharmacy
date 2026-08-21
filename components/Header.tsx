@@ -1,4 +1,3 @@
-import Link from "next/link";
 import CartIcon from "./CartIcon";
 import Container from "./Container";
 import FavouriteButton from "./FavouriteButton";
@@ -11,25 +10,18 @@ import { auth } from "@/auth";
 
 const Header = async () => {
   const session = await auth();
-  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <header className="sticky top-0 z-40 border-b border-shop_dark_green/10 bg-white/90 backdrop-blur-md">
-      <Container className="flex items-center justify-between py-3.5 text-lightColor sm:py-4">
-        <div className="flex w-auto items-center justify-start gap-2.5 md:w-1/3 md:gap-0">
+      <Container className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 sm:gap-4 sm:py-4">
+        <div className="flex min-w-0 items-center gap-2.5">
           <MobileMenu />
           <Logo />
         </div>
+
         <HeaderMenu />
-        <div className="flex w-auto items-center justify-end gap-4 sm:gap-5 md:w-1/3">
-          {isAdmin && (
-            <Link
-              href="/admin"
-              className="hidden text-sm font-semibold text-shop_dark_green hover:text-shop_light_green sm:inline"
-            >
-              Admin
-            </Link>
-          )}
+
+        <div className="flex shrink-0 items-center justify-end gap-2.5 sm:gap-3">
           <SearchBar />
           <CartIcon />
           <FavouriteButton />

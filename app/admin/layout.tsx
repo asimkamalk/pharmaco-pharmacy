@@ -2,8 +2,11 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import {
   Boxes,
+  FileText,
+  Home,
   LayoutDashboard,
   Package,
+  Settings,
   ShoppingBag,
   Tags,
   Users,
@@ -17,6 +20,9 @@ const links = [
   { href: "/admin/brands", label: "Brands", icon: Boxes },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/customers", label: "Customers", icon: Users },
+  { href: "/admin/homepage", label: "Homepage", icon: Home },
+  { href: "/admin/pages", label: "Pages", icon: FileText },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default async function AdminLayout({

@@ -5,7 +5,7 @@ import { Building2, Home, MapPinned, Pencil, Plus, Trash2 } from "lucide-react";
 import { getAddressLabelText, useAddresses } from "@/hooks/useAddresses";
 import { useIsHydrated } from "@/hooks";
 import { addressFormSchema, type AddressFormValues } from "@/lib/validations";
-import { siteConfig } from "@/constants/site";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
 import { cn } from "@/lib/utils";
 import type { AddressLabel, SavedAddress } from "@/types";
 
@@ -32,15 +32,15 @@ const labelOptions: {
   { value: "other", title: "Other", icon: MapPinned },
 ];
 
-const emptyForm = (): AddressFormValues => ({
+const emptyForm = (area: string, city: string): AddressFormValues => ({
   label: "home",
   customLabel: "",
   fullName: "",
   phone: "",
   email: "",
   addressLine: "",
-  area: siteConfig.location.area,
-  city: siteConfig.location.city,
+  area,
+  city,
   notes: "",
   isDefault: false,
 });
@@ -51,6 +51,7 @@ const AddressManager = ({
   onSelect,
   className,
 }: AddressManagerProps) => {
+  const siteConfig = useSiteConfig();
   const isHydrated = useIsHydrated();
   const addresses = useAddresses((state) => state.addresses);
   const addAddress = useAddresses((state) => state.addAddress);
@@ -60,12 +61,14 @@ const AddressManager = ({
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<AddressFormValues>(emptyForm);
+  const [form, setForm] = useState<AddressFormValues>(() =>
+    emptyForm(siteConfig.location.area, siteConfig.location.city),
+  );
   const [errors, setErrors] = useState<FieldErrors>({});
 
   const openCreate = () => {
     setEditingId(null);
-    setForm(emptyForm());
+    setForm(emptyForm(siteConfig.location.area, siteConfig.location.city));
     setErrors({});
     setIsFormOpen(true);
   };
@@ -124,7 +127,7 @@ const AddressManager = ({
 
     setIsFormOpen(false);
     setEditingId(null);
-    setForm(emptyForm());
+    setForm(emptyForm(siteConfig.location.area, siteConfig.location.city));
     setErrors({});
   };
 

@@ -203,3 +203,61 @@ model OrderItem {
   order                Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product              Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 }
+
+/** Singleton store settings (id is always "default") */
+model SiteSettings {
+  id                   String   @id @default("default")
+  name                 String   @default("Pharmaco Pharmacy")
+  shortName            String   @default("Pharmaco")
+  tagline              String   @default("Your trusted pharmacy in Hayatabad, Peshawar")
+  description          String   @default("")
+  area                 String   @default("Hayatabad")
+  city                 String   @default("Peshawar")
+  country              String   @default("Pakistan")
+  address              String   @default("")
+  phone                String   @default("")
+  whatsapp             String   @default("")
+  email                String   @default("")
+  openingHours         String   @default("")
+  deliveryStandardFee  Float    @default(150)
+  freeDeliveryAbove    Float    @default(2000)
+  deliveryEstimate     String   @default("")
+  bankName             String   @default("")
+  bankAccountTitle     String   @default("")
+  bankAccountNumber    String   @default("")
+  bankIban             String   @default("")
+  easyPaisaTitle       String   @default("")
+  easyPaisaNumber      String   @default("")
+  jazzCashTitle        String   @default("")
+  jazzCashNumber       String   @default("")
+  mapEmbedUrl          String   @default("")
+  mapLinkUrl           String   @default("")
+  logoUrl              String   @default("/images/pharmaco-logo-text.png")
+  facebookUrl          String   @default("")
+  instagramUrl         String   @default("")
+  tiktokUrl            String   @default("")
+  twitterUrl           String   @default("")
+  seoTitle             String   @default("")
+  seoDescription       String   @default("")
+  heroEyebrow          String   @default("")
+  heroHeadline         String   @default("Your health, delivered with care")
+  heroSubcopy          String   @default("")
+  heroCtaPrimaryLabel  String   @default("Shop now")
+  heroCtaPrimaryHref   String   @default("/shop")
+  heroCtaSecondaryLabel String  @default("Contact us")
+  heroCtaSecondaryHref String   @default("/contact")
+  promoHeadline        String   @default("")
+  promoSubcopy         String   @default("")
+  whyChooseJson        String   @default("[]")
+  updatedAt            DateTime @updatedAt
+}
+
+model CmsPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  bodyHtml    String   @default("")
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

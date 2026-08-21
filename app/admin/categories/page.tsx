@@ -24,19 +24,32 @@ const AdminCategoriesPage = async () => {
 
       <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
         <h2 className="mb-4 font-semibold text-darkColor">Add category</h2>
-        <form action={saveCategory} className="grid gap-3 md:grid-cols-2">
+        <form
+          action={saveCategory}
+          encType="multipart/form-data"
+          className="grid gap-3 md:grid-cols-2"
+        >
           <input name="title" required placeholder="Title" className={field} />
           <input name="slug" placeholder="Slug (optional)" className={field} />
           <input
             name="image"
-            placeholder="Image URL"
+            placeholder="Image URL (or upload)"
             defaultValue="/images/categories/placeholder.svg"
             className={field}
           />
+          <label className="space-y-1 text-sm">
+            <span>Upload image</span>
+            <input
+              type="file"
+              name="imageFile"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className={field}
+            />
+          </label>
           <input
             name="description"
             placeholder="Description"
-            className={field}
+            className={`${field} md:col-span-2`}
           />
           <label className="flex items-center gap-2 text-sm md:col-span-2">
             <input type="checkbox" name="isActive" defaultChecked />
@@ -56,6 +69,7 @@ const AdminCategoriesPage = async () => {
           <form
             key={category.id}
             action={saveCategory}
+            encType="multipart/form-data"
             className="grid gap-3 rounded-2xl border border-black/10 bg-white p-5 shadow-sm md:grid-cols-2"
           >
             <input type="hidden" name="id" value={category.id} />
@@ -67,10 +81,19 @@ const AdminCategoriesPage = async () => {
             />
             <input name="slug" defaultValue={category.slug} className={field} />
             <input name="image" defaultValue={category.image} className={field} />
+            <label className="space-y-1 text-sm">
+              <span>Replace image</span>
+              <input
+                type="file"
+                name="imageFile"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className={field}
+              />
+            </label>
             <input
               name="description"
               defaultValue={category.description}
-              className={field}
+              className={`${field} md:col-span-2`}
             />
             <label className="flex items-center gap-2 text-sm">
               <input
