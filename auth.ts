@@ -156,7 +156,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as "USER" | "ADMIN") ?? "USER";
-        session.user.discountPercent = token.discountPercent ?? 0;
+        session.user.discountPercent =
+          typeof token.discountPercent === "number"
+            ? token.discountPercent
+            : 0;
       }
       return session;
     },
