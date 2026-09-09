@@ -18,7 +18,7 @@ export function redirectWithFlash(
 }
 
 export function firstZodMessage(
-  issues: { path: (string | number)[]; message: string }[],
+  issues: { path: readonly (string | number | symbol)[]; message: string }[],
 ): string {
   const issue = issues[0];
   if (!issue) return "Please fill in all required fields";

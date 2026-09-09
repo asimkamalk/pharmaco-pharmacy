@@ -8,7 +8,7 @@ import {
   markPrescriptionRequestInProgress,
   rejectPrescriptionRequest,
 } from "@/lib/actions/prescription-request";
-import { formatPrice, cn } from "@/lib/utils";
+import { formatPrice, getDiscountedPrice, cn } from "@/lib/utils";
 import { unitPriceForPack } from "@/lib/pack";
 import type { PrescriptionRequestRecord } from "@/lib/prescription-requests";
 import type { PackType, Product } from "@/types";

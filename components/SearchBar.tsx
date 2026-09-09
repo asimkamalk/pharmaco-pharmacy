@@ -123,7 +123,7 @@ const SearchBar = () => {
                   >
                     <Image
                       src={product.images[0]}
-                      alt={product.imageAlts?.[0] || product.name}
+                      alt={product.name}
                       width={36}
                       height={36}
                       className="h-9 w-9 rounded object-cover"
@@ -156,7 +156,7 @@ const SearchBar = () => {
                   >
                     <Image
                       src={category.image}
-                      alt={category.imageAlt || category.title}
+                      alt={category.title}
                       width={28}
                       height={28}
                       className="h-7 w-7 rounded object-cover"
@@ -178,7 +178,7 @@ const SearchBar = () => {
                   >
                     <Image
                       src={brand.image}
-                      alt={brand.imageAlt || brand.title}
+                      alt={brand.title}
                       width={28}
                       height={28}
                       className="h-7 w-7 rounded object-cover"
