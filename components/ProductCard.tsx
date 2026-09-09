@@ -56,17 +56,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
         />
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex flex-1 flex-col gap-1.5 p-3.5 sm:p-4">
         {categoryTitle && (
           <Link
             href={`/shop?category=${product.categorySlug}`}
-            className="text-xs font-medium uppercase tracking-wide text-shop_light_green transition-colors duration-200 hover:text-shop_dark_green"
+            className="text-[11px] font-medium uppercase tracking-wide text-shop_light_green transition-colors duration-200 hover:text-shop_dark_green"
           >
             {categoryTitle}
           </Link>
         )}
 
-        <h3 className="line-clamp-2 text-sm font-semibold text-darkColor">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-darkColor">
           <Link
             href={`/product/${product.slug}`}
             className="transition-colors duration-200 hover:text-shop_dark_green"
@@ -75,7 +75,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </Link>
         </h3>
 
-        <div className="mt-auto space-y-3 pt-1">
+        <div className="mt-auto space-y-2.5 pt-2">
           <PriceView
             price={product.price}
             discount={product.discount}

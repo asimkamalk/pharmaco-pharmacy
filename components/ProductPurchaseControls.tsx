@@ -319,13 +319,19 @@ const ProductPurchaseControls = ({
 
   /* —— Card —— */
   return (
-    <div className={cn("space-y-2", className)}>
-      {stripHint ? (
-        <p className="text-[11px] leading-snug text-lightColor">{stripHint}</p>
-      ) : null}
-      <p className="text-[11px] text-lightColor">
-        Box {formatPrice(boxPrice)} · Strip {formatPrice(stripPrice)}
-      </p>
+    <div className={cn("space-y-2.5", className)}>
+      {(stripHint || boxPrice || stripPrice) && (
+        <div className="space-y-0.5">
+          {stripHint ? (
+            <p className="text-[11px] leading-snug text-lightColor">
+              {stripHint}
+            </p>
+          ) : null}
+          <p className="text-[11px] leading-snug text-lightColor">
+            Box {formatPrice(boxPrice)} · Strip {formatPrice(stripPrice)}
+          </p>
+        </div>
+      )}
 
       {(boxQty > 0 || stripQty > 0) && (
         <div className="space-y-1.5">
@@ -334,25 +340,23 @@ const ProductPurchaseControls = ({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <button
           type="button"
           onClick={() => addItem(product, 1, "box")}
           disabled={maxBoxes <= 0}
-          className="inline-flex h-9 items-center justify-center gap-1 rounded-lg bg-shop_btn_dark_green px-2 text-xs font-semibold text-white hover:bg-shop_dark_green/90 disabled:bg-lightColor/30 disabled:text-lightColor sm:text-sm"
+          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-shop_btn_dark_green px-3 text-sm font-semibold whitespace-nowrap text-white hover:bg-shop_dark_green/90 disabled:bg-lightColor/30 disabled:text-lightColor"
         >
-          <ShoppingBag className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">
-            {maxBoxes <= 0 ? "No stock" : "Add to cart"}
-          </span>
+          <ShoppingBag className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {maxBoxes <= 0 ? "Out of stock" : "Add box"}
         </button>
         <button
           type="button"
           onClick={() => addItem(product, 1, "strip")}
           disabled={maxStrips <= 0}
-          className="inline-flex h-9 items-center justify-center rounded-lg border border-shop_btn_dark_green/35 bg-white px-2 text-xs font-semibold text-shop_dark_green hover:bg-shop_light_bg disabled:opacity-40 sm:text-sm"
+          className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-shop_btn_dark_green/35 bg-white px-3 text-sm font-semibold whitespace-nowrap text-shop_dark_green hover:bg-shop_light_bg disabled:opacity-40"
         >
-          Add 1 strip
+          {maxStrips <= 0 ? "No strips" : "Add 1 strip"}
         </button>
       </div>
     </div>
