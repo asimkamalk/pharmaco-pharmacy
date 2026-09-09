@@ -65,6 +65,11 @@ const EditProductPage = async ({ params, searchParams }: PageProps) => {
             imageUrl:
               product.images[0]?.url || "/images/products/placeholder.svg",
             requiresPrescription: product.requiresPrescription,
+            sellByStrip: product.sellByStrip,
+            unitsPerStrip: product.unitsPerStrip,
+            stripsPerBox: product.stripsPerBox,
+            stripPrice: product.stripPrice,
+            stripPurchasePrice: product.stripPurchasePrice,
             isFeatured: product.isFeatured,
             isArchived: product.isArchived,
             genericName: product.genericName,

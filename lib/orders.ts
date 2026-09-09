@@ -2,13 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import {
+  normalizePackType,
+  purchasePriceForPack,
+  stockUnitsForLine,
+  unitPriceForPack,
+} from "@/lib/pack";
+import { resolveDeliveryFee } from "@/lib/delivery";
 import { prisma } from "@/lib/prisma";
-import { getDiscountedPrice } from "@/lib/utils";
-import { getSiteConfig } from "@/lib/site";
 import type {
   AddressLabel,
   Order,
   OrderStatus,
+  PackType,
   PaymentMethod,
   PaymentStatus,
   PrescriptionStatus,
@@ -43,7 +49,7 @@ export interface PlaceOrderInput {
   prescriptionFileName?: string;
   prescriptionMimeType?: string;
   orderNotes?: string;
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; quantity: number; packType?: PackType }[];
 }
 
 function mapDbOrder(order: {
@@ -71,7 +77,10 @@ function mapDbOrder(order: {
   orderNotes: string | null;
   subtotal: number;
   discountTotal: number;
+  customerDiscountPercent: number;
+  customerDiscountAmount: number;
   deliveryFee: number;
+  deliveryZoneLabel: string | null;
   costTotal: number;
   grandTotal: number;
   userId: string | null;
@@ -86,6 +95,10 @@ function mapDbOrder(order: {
     purchasePrice: number;
     discount: number;
     requiresPrescription: boolean;
+    packType: string;
+    soldAsStrip: boolean;
+    unitsPerStrip: number | null;
+    stripsPerBox: number | null;
   }[];
 }): Order {
   return {
@@ -124,10 +137,18 @@ function mapDbOrder(order: {
       purchasePrice: item.purchasePrice,
       discount: item.discount,
       requiresPrescription: item.requiresPrescription,
+      packType: normalizePackType(item.packType, item.soldAsStrip),
+      soldAsStrip:
+        normalizePackType(item.packType, item.soldAsStrip) === "strip",
+      unitsPerStrip: item.unitsPerStrip ?? undefined,
+      stripsPerBox: item.stripsPerBox ?? undefined,
     })),
     subtotal: order.subtotal,
     discountTotal: order.discountTotal,
+    customerDiscountPercent: order.customerDiscountPercent,
+    customerDiscountAmount: order.customerDiscountAmount,
     deliveryFee: order.deliveryFee,
+    deliveryZoneLabel: order.deliveryZoneLabel ?? undefined,
     costTotal: order.costTotal,
     grandTotal: order.grandTotal,
     userId: order.userId,
@@ -159,19 +180,62 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   const lineItems = input.items.map((item) => {
     const product = productMap[item.productId];
     if (!product) throw new Error("Product not found");
-    if (product.stock < item.quantity) {
-      throw new Error(`Insufficient stock for ${product.name}`);
-    }
     if (item.quantity < 1) {
       throw new Error("Invalid quantity");
     }
-    const unitPrice = getDiscountedPrice(product.price, product.discount);
+
+    const packType = normalizePackType(
+      item.packType ?? (product.sellByStrip ? "box" : "unit"),
+    );
+
+    if (product.sellByStrip && packType === "unit") {
+      throw new Error(`Choose box or strip for ${product.name}`);
+    }
+    if (!product.sellByStrip && packType !== "unit") {
+      throw new Error(`${product.name} is not sold by box/strip`);
+    }
+    if (product.sellByStrip && packType === "strip" && !product.stripPrice) {
+      throw new Error(`Strip price is not configured for ${product.name}`);
+    }
+    if (
+      product.sellByStrip &&
+      packType === "box" &&
+      (!product.stripsPerBox || product.stripsPerBox < 1)
+    ) {
+      throw new Error(`Box size is not configured for ${product.name}`);
+    }
+
+    const stockNeeded = stockUnitsForLine(product, packType, item.quantity);
+    if (product.stock < stockNeeded) {
+      throw new Error(`Insufficient stock for ${product.name}`);
+    }
+
     return {
       product,
       quantity: item.quantity,
-      unitPrice,
+      packType,
+      unitPrice: unitPriceForPack(product, packType),
+      purchasePrice: purchasePriceForPack(product, packType),
+      stockNeeded,
+      listPrice:
+        packType === "strip" ? (product.stripPrice ?? 0) : product.price,
     };
   });
+
+  // Same product may appear as box + strip — check combined stock
+  const stockDemand = new Map<string, number>();
+  for (const line of lineItems) {
+    stockDemand.set(
+      line.product.id,
+      (stockDemand.get(line.product.id) ?? 0) + line.stockNeeded,
+    );
+  }
+  for (const line of lineItems) {
+    const needed = stockDemand.get(line.product.id) ?? 0;
+    if (line.product.stock < needed) {
+      throw new Error(`Insufficient stock for ${line.product.name}`);
+    }
+  }
 
   const requiresPrescription = lineItems.some(
     (line) => line.product.requiresPrescription,
@@ -190,20 +254,27 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     (total, line) => total + line.unitPrice * line.quantity,
     0,
   );
-  const discountTotal = lineItems.reduce(
+  const productDiscountTotal = lineItems.reduce(
     (total, line) =>
-      total + (line.product.price - line.unitPrice) * line.quantity,
+      total + (line.listPrice - line.unitPrice) * line.quantity,
     0,
   );
   const costTotal = lineItems.reduce(
-    (total, line) => total + line.product.purchasePrice * line.quantity,
+    (total, line) => total + line.purchasePrice * line.quantity,
     0,
   );
-  const siteConfig = await getSiteConfig();
-  const deliveryFee =
-    subtotal >= siteConfig.delivery.freeDeliveryAbove
-      ? 0
-      : siteConfig.delivery.standardFee;
+
+  // Order % discount is applied later by admin on the order detail page
+  const orderDiscountPercent = 0;
+  const orderDiscountAmount = 0;
+  const discountTotal = productDiscountTotal;
+
+  const delivery = await resolveDeliveryFee({
+    city: input.address.city,
+    area: input.address.area,
+    subtotal,
+  });
+  const deliveryFee = delivery.fee;
 
   const email =
     input.address.email?.trim() ||
@@ -211,13 +282,16 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     `${input.address.phone.replace(/\s+/g, "")}@customer.local`;
 
   const created = await prisma.$transaction(async (tx) => {
-    for (const line of lineItems) {
+    for (const [productId, needed] of stockDemand.entries()) {
       const updated = await tx.product.updateMany({
-        where: { id: line.product.id, stock: { gte: line.quantity } },
-        data: { stock: { decrement: line.quantity } },
+        where: { id: productId, stock: { gte: needed } },
+        data: { stock: { decrement: needed } },
       });
       if (updated.count !== 1) {
-        throw new Error(`Insufficient stock for ${line.product.name}`);
+        const product = productMap[productId];
+        throw new Error(
+          `Insufficient stock for ${product?.name ?? "product"}`,
+        );
       }
     }
 
@@ -247,7 +321,10 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
         orderNotes: input.orderNotes?.trim() || null,
         subtotal,
         discountTotal,
+        customerDiscountPercent: orderDiscountPercent,
+        customerDiscountAmount: orderDiscountAmount,
         deliveryFee,
+        deliveryZoneLabel: delivery.zoneLabel,
         costTotal,
         grandTotal: subtotal + deliveryFee,
         items: {
@@ -261,9 +338,17 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
             sku: line.product.sku,
             quantity: line.quantity,
             unitPrice: line.unitPrice,
-            purchasePrice: line.product.purchasePrice,
+            purchasePrice: line.purchasePrice,
             discount: line.product.discount,
             requiresPrescription: line.product.requiresPrescription,
+            packType: line.packType,
+            soldAsStrip: line.packType === "strip",
+            unitsPerStrip: line.product.sellByStrip
+              ? line.product.unitsPerStrip
+              : null,
+            stripsPerBox: line.product.sellByStrip
+              ? line.product.stripsPerBox
+              : null,
           })),
         },
       },
@@ -278,12 +363,38 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   return mapDbOrder(created);
 }
 
+async function orderCountsByUserId(
+  userIds: (string | null | undefined)[],
+): Promise<Map<string, number>> {
+  const ids = [...new Set(userIds.filter((id): id is string => Boolean(id)))];
+  if (ids.length === 0) return new Map();
+
+  const rows = await prisma.order.groupBy({
+    by: ["userId"],
+    where: { userId: { in: ids } },
+    _count: { _all: true },
+  });
+
+  return new Map(
+    rows
+      .filter((row) => row.userId)
+      .map((row) => [row.userId as string, row._count._all]),
+  );
+}
+
 export async function getOrderById(id: string): Promise<Order | null> {
   const order = await prisma.order.findUnique({
     where: { id },
     include: { items: true },
   });
-  return order ? mapDbOrder(order) : null;
+  if (!order) return null;
+
+  const mapped = mapDbOrder(order);
+  if (order.userId) {
+    const counts = await orderCountsByUserId([order.userId]);
+    mapped.customerOrderCount = counts.get(order.userId) ?? 0;
+  }
+  return mapped;
 }
 
 export async function getOrdersForUser(userId: string): Promise<Order[]> {
@@ -311,7 +422,14 @@ export async function getAllOrders(query?: string): Promise<Order[]> {
     include: { items: true },
     orderBy: { createdAt: "desc" },
   });
-  return orders.map(mapDbOrder);
+  const counts = await orderCountsByUserId(orders.map((order) => order.userId));
+  return orders.map((order) => {
+    const mapped = mapDbOrder(order);
+    if (order.userId) {
+      mapped.customerOrderCount = counts.get(order.userId) ?? 0;
+    }
+    return mapped;
+  });
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus) {

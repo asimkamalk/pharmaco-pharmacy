@@ -39,6 +39,16 @@ export interface Product {
   sku: string;
   images: string[];
   requiresPrescription: boolean;
+  /** Offers full box + single strip purchase */
+  sellByStrip?: boolean;
+  /** Tablets/capsules per strip */
+  unitsPerStrip?: number;
+  /** Strips inside one complete box */
+  stripsPerBox?: number;
+  /** Price for one strip (box uses `price`) */
+  stripPrice?: number;
+  /** Optional strip cost; else purchasePrice / stripsPerBox */
+  stripPurchasePrice?: number;
   isFeatured: boolean;
   isArchived?: boolean;
   rating?: number;
@@ -50,9 +60,13 @@ export interface Product {
   createdAt: string;
 }
 
+export type PackType = "unit" | "box" | "strip";
+
 export interface CartItem {
   product: Product;
   quantity: number;
+  /** How this line is sold. Box = complete pack; strip = single strip. */
+  packType: PackType;
 }
 
 export type SortOption = "newest" | "price-asc" | "price-desc" | "name";
@@ -88,6 +102,17 @@ export type OrderStatus =
 
 export type AddressLabel = "home" | "office" | "other";
 
+export type AddressRegion = "hayatabad" | "outside";
+
+export type HayatabadPhase =
+  | "Phase 1"
+  | "Phase 2"
+  | "Phase 3"
+  | "Phase 4"
+  | "Phase 5"
+  | "Phase 6"
+  | "Phase 7";
+
 export interface SavedAddress {
   id: string;
   label: AddressLabel;
@@ -100,6 +125,13 @@ export interface SavedAddress {
   city: string;
   notes?: string;
   isDefault: boolean;
+  /** How the address was entered */
+  region?: AddressRegion;
+  /** Hayatabad structured fields */
+  houseNo?: string;
+  streetNo?: string;
+  sectorNo?: string;
+  phase?: HayatabadPhase | string;
 }
 
 export type PaymentMethod =
@@ -126,6 +158,12 @@ export interface OrderItemSnapshot {
   purchasePrice?: number;
   discount: number;
   requiresPrescription: boolean;
+  /** unit | box | strip */
+  packType?: PackType;
+  /** @deprecated use packType */
+  soldAsStrip?: boolean;
+  unitsPerStrip?: number;
+  stripsPerBox?: number;
 }
 
 export type PrescriptionStatus =
@@ -162,8 +200,13 @@ export interface Order {
   items: OrderItemSnapshot[];
   subtotal: number;
   discountTotal: number;
+  customerDiscountPercent?: number;
+  customerDiscountAmount?: number;
   deliveryFee: number;
+  deliveryZoneLabel?: string;
   costTotal?: number;
   grandTotal: number;
   userId?: string | null;
+  /** Total orders placed by this registered customer (admin). */
+  customerOrderCount?: number;
 }

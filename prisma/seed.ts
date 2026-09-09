@@ -78,6 +78,17 @@ async function main() {
         discount: product.discount,
         stock: product.stock,
         requiresPrescription: product.requiresPrescription,
+        sellByStrip: Boolean(product.sellByStrip),
+        unitsPerStrip: product.sellByStrip
+          ? product.unitsPerStrip ?? null
+          : null,
+        stripsPerBox: product.sellByStrip
+          ? product.stripsPerBox ?? null
+          : null,
+        stripPrice: product.sellByStrip ? product.stripPrice ?? null : null,
+        stripPurchasePrice: product.sellByStrip
+          ? product.stripPurchasePrice ?? null
+          : null,
         isFeatured: product.isFeatured,
         rating: product.rating ?? null,
         reviewCount: product.reviewCount ?? 0,
@@ -100,6 +111,17 @@ async function main() {
         discount: product.discount,
         stock: product.stock,
         requiresPrescription: product.requiresPrescription,
+        sellByStrip: Boolean(product.sellByStrip),
+        unitsPerStrip: product.sellByStrip
+          ? product.unitsPerStrip ?? null
+          : null,
+        stripsPerBox: product.sellByStrip
+          ? product.stripsPerBox ?? null
+          : null,
+        stripPrice: product.sellByStrip ? product.stripPrice ?? null : null,
+        stripPurchasePrice: product.sellByStrip
+          ? product.stripPurchasePrice ?? null
+          : null,
         isFeatured: product.isFeatured,
         rating: product.rating ?? null,
         reviewCount: product.reviewCount ?? 0,
@@ -249,6 +271,57 @@ async function main() {
         isActive: true,
       },
     });
+  }
+
+  const deliveryZones = [
+    { label: "Hayatabad Phase 1", city: "Peshawar", area: "Hayatabad Phase 1", fee: 50, sortOrder: 1 },
+    { label: "Hayatabad Phase 2", city: "Peshawar", area: "Hayatabad Phase 2", fee: 100, sortOrder: 2 },
+    { label: "Hayatabad Phase 3", city: "Peshawar", area: "Hayatabad Phase 3", fee: 100, sortOrder: 3 },
+    { label: "Hayatabad Phase 4", city: "Peshawar", area: "Hayatabad Phase 4", fee: 100, sortOrder: 4 },
+    { label: "Hayatabad Phase 5", city: "Peshawar", area: "Hayatabad Phase 5", fee: 120, sortOrder: 5 },
+    { label: "Hayatabad Phase 6", city: "Peshawar", area: "Hayatabad Phase 6", fee: 120, sortOrder: 6 },
+    { label: "Hayatabad Phase 7", city: "Peshawar", area: "Hayatabad Phase 7", fee: 150, sortOrder: 7 },
+    { label: "Hayatabad (fallback)", city: "Peshawar", area: "Hayatabad", fee: 100, sortOrder: 8 },
+    { label: "University Town", city: "Peshawar", area: "University Town", fee: 150, sortOrder: 20 },
+    { label: "Board / Ring Road", city: "Peshawar", area: "Ring Road", fee: 180, sortOrder: 21 },
+    { label: "Saddar / Cantt", city: "Peshawar", area: "Saddar", fee: 200, sortOrder: 22 },
+    { label: "Peshawar (city-wide)", city: "Peshawar", area: "", fee: 200, sortOrder: 30 },
+  ];
+
+  // Only remove the obsolete single-zone label — never wipe admin fee edits
+  await prisma.deliveryZone.deleteMany({
+    where: { label: "Hayatabad (all phases)" },
+  });
+
+  for (const zone of deliveryZones) {
+    const existing = await prisma.deliveryZone.findFirst({
+      where: {
+        OR: [
+          { city: zone.city, area: zone.area },
+          { label: zone.label },
+        ],
+      },
+    });
+    if (existing) {
+      // Keep admin-edited fees; only fill missing metadata
+      await prisma.deliveryZone.update({
+        where: { id: existing.id },
+        data: {
+          label: existing.label || zone.label,
+          city: zone.city,
+          area: zone.area,
+          sortOrder: zone.sortOrder,
+        },
+      });
+    } else {
+      await prisma.deliveryZone.create({
+        data: {
+          ...zone,
+          isActive: true,
+          freeDeliveryAbove: null,
+        },
+      });
+    }
   }
 
   console.log("Seed complete.");

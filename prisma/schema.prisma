@@ -23,6 +23,8 @@ model User {
   role          Role      @default(USER)
   /** When true, customer cannot sign in */
   isRestricted  Boolean   @default(false)
+  /** Extra % discount applied at checkout (admin-assigned) */
+  discountPercent Int     @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -113,6 +115,20 @@ model Product {
   discount             Int            @default(0)
   stock                Int            @default(0)
   requiresPrescription Boolean        @default(false)
+  /** When true, customers can buy a full box or a single strip */
+  sellByStrip          Boolean        @default(false)
+  /** Tablets/capsules in one strip */
+  unitsPerStrip        Int?
+  /** Strips in one complete box/pack (Add to cart = box) */
+  stripsPerBox         Int?
+  /** Selling price for one strip (PKR). Box price uses `price`. */
+  stripPrice           Float?
+  /** Optional purchase cost for one strip; defaults to purchasePrice / stripsPerBox */
+  stripPurchasePrice   Float?
+  /**
+   * Inventory in strips when sellByStrip is on (1 box consumes stripsPerBox).
+   * Otherwise regular sellable units.
+   */
   isFeatured           Boolean        @default(false)
   isArchived           Boolean        @default(false)
   rating               Float?
@@ -188,8 +204,15 @@ model Order {
   city                   String
   orderNotes             String?
   subtotal               Float
+  /** Product sale savings + customer % discount amount */
   discountTotal          Float       @default(0)
+  /** Admin-assigned customer % applied on this order */
+  customerDiscountPercent Int        @default(0)
+  /** PKR amount from customerDiscountPercent */
+  customerDiscountAmount Float       @default(0)
   deliveryFee            Float       @default(0)
+  /** Matched delivery zone label at order time (optional) */
+  deliveryZoneLabel      String?
   /** Total purchase/cost of goods for this order (for profit reports) */
   costTotal              Float       @default(0)
   grandTotal             Float
@@ -250,8 +273,33 @@ model OrderItem {
   purchasePrice        Float   @default(0)
   discount             Int     @default(0)
   requiresPrescription Boolean @default(false)
+  /** unit | box | strip — how this line was sold */
+  packType             String  @default("unit")
+  /** @deprecated prefer packType === "strip"; kept for older rows */
+  soldAsStrip          Boolean @default(false)
+  unitsPerStrip        Int?
+  stripsPerBox         Int?
   order                Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product              Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+/** Location-based delivery fees (city / area) */
+model DeliveryZone {
+  id                 String   @id @default(cuid())
+  /** Admin-facing name, e.g. "Hayatabad Phase 1–3" */
+  label              String
+  city               String
+  /** Empty = whole city fallback */
+  area               String   @default("")
+  fee                Float
+  /** Null = use site freeDeliveryAbove */
+  freeDeliveryAbove  Float?
+  isActive           Boolean  @default(true)
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([city, isActive])
 }
 
 /** Singleton store settings (id is always "default") */

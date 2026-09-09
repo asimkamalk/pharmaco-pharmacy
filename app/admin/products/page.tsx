@@ -91,11 +91,13 @@ const AdminProductsPage = async ({ searchParams }: PageProps) => {
                       }
                     >
                       {product.stock}
+                      {product.sellByStrip ? " strips" : ""}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs capitalize">
                     {product.isArchived ? "Archived" : "Live"}
                     {product.isFeatured ? " · Featured" : ""}
+                    {product.sellByStrip ? " · Box + strip" : ""}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link

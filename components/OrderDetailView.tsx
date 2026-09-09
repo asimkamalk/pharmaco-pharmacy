@@ -8,6 +8,7 @@ import ReorderButton from "@/components/ReorderButton";
 import { auth } from "@/auth";
 import { getOrderById } from "@/lib/orders";
 import { formatPkDateTime } from "@/lib/datetime";
+import { formatPackOrderLabel, normalizePackType } from "@/lib/pack";
 import { formatPrice } from "@/lib/utils";
 import type {
   OrderStatus,
@@ -146,7 +147,16 @@ const OrderDetailView = async ({
                       {item.name}
                     </Link>
                     <p className="text-xs text-lightColor">
-                      SKU {item.sku} · Qty {item.quantity}
+                      SKU {item.sku} ·{" "}
+                      {formatPackOrderLabel({
+                        packType: normalizePackType(
+                          item.packType,
+                          item.soldAsStrip,
+                        ),
+                        quantity: item.quantity,
+                        unitsPerStrip: item.unitsPerStrip,
+                        stripsPerBox: item.stripsPerBox,
+                      })}
                       {item.requiresPrescription
                         ? " · Prescription required"
                         : ""}
@@ -284,14 +294,29 @@ const OrderDetailView = async ({
               </div>
               {order.discountTotal > 0 && (
                 <div className="flex justify-between">
-                  <dt className="text-lightColor">Discount</dt>
+                  <dt className="text-lightColor">Discounts</dt>
                   <dd className="text-shop_light_green">
                     −{formatPrice(order.discountTotal)}
                   </dd>
                 </div>
               )}
+              {(order.customerDiscountAmount ?? 0) > 0 && (
+                <div className="flex justify-between text-xs">
+                  <dt className="text-lightColor">
+                    Order discount ({order.customerDiscountPercent}%)
+                  </dt>
+                  <dd className="text-shop_light_green">
+                    −{formatPrice(order.customerDiscountAmount ?? 0)}
+                  </dd>
+                </div>
+              )}
               <div className="flex justify-between">
-                <dt className="text-lightColor">Delivery</dt>
+                <dt className="text-lightColor">
+                  Delivery
+                  {order.deliveryZoneLabel
+                    ? ` · ${order.deliveryZoneLabel}`
+                    : ""}
+                </dt>
                 <dd>
                   {order.deliveryFee === 0
                     ? "Free"
@@ -322,6 +347,7 @@ const OrderDetailView = async ({
             .map((item) => ({
               productId: item.productId,
               quantity: item.quantity,
+              packType: item.packType,
             }))}
         />
         <Link

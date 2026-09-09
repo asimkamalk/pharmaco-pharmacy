@@ -133,7 +133,15 @@ const AdminCustomersPage = async ({ searchParams }: PageProps) => {
                   <td className="px-4 py-3 text-lightColor">
                     {formatPkDate(customer.createdAt)}
                   </td>
-                  <td className="px-4 py-3">{customer._count.orders}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/customers/${customer.id}`}
+                      className="font-semibold text-shop_dark_green hover:text-shop_light_green"
+                    >
+                      {customer._count.orders} order
+                      {customer._count.orders === 1 ? "" : "s"}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 font-semibold text-shop_dark_green">
                     {formatPrice(spend)}
                   </td>

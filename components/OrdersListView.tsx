@@ -99,6 +99,7 @@ const OrdersListView = async () => {
               .map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
+                packType: item.packType,
               }));
 
             return (

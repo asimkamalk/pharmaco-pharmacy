@@ -30,6 +30,11 @@ type DbProduct = {
   discount: number;
   stock: number;
   requiresPrescription: boolean;
+  sellByStrip: boolean;
+  unitsPerStrip: number | null;
+  stripsPerBox: number | null;
+  stripPrice: number | null;
+  stripPurchasePrice: number | null;
   isFeatured: boolean;
   isArchived: boolean;
   rating: number | null;
@@ -92,6 +97,13 @@ export function mapProduct(
     images:
       images.length > 0 ? images : ["/images/products/placeholder.svg"],
     requiresPrescription: product.requiresPrescription,
+    sellByStrip: product.sellByStrip,
+    unitsPerStrip: product.unitsPerStrip ?? undefined,
+    stripsPerBox: product.stripsPerBox ?? undefined,
+    stripPrice: product.stripPrice ?? undefined,
+    stripPurchasePrice: options?.includeCost
+      ? (product.stripPurchasePrice ?? undefined)
+      : undefined,
     isFeatured: product.isFeatured,
     isArchived: product.isArchived,
     rating: product.rating ?? undefined,

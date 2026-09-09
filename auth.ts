@@ -122,7 +122,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, isRestricted: true },
+          select: { role: true, isRestricted: true, discountPercent: true },
         });
 
         if (!dbUser) {
@@ -134,6 +134,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         token.role = dbUser.role;
+        token.discountPercent = dbUser.discountPercent ?? 0;
         return token;
       } catch {
         return token;
@@ -155,6 +156,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as "USER" | "ADMIN") ?? "USER";
+        session.user.discountPercent = token.discountPercent ?? 0;
       }
       return session;
     },

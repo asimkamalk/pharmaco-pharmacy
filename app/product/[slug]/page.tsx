@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight, ClipboardList, ShieldCheck, Truck } from "lucide-react";
-import AddToCartButton from "@/components/AddToCartButton";
 import AddToWishlistButton from "@/components/AddToWishlistButton";
 import Container from "@/components/Container";
 import JsonLd from "@/components/JsonLd";
 import PriceView from "@/components/PriceView";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
+import ProductPurchaseControls from "@/components/ProductPurchaseControls";
 import {
   getBrandBySlug,
   getCategoryBySlug,
@@ -18,6 +18,7 @@ import {
 import { absoluteUrl, buildProductJsonLd } from "@/lib/seo";
 import { getSiteConfig } from "@/lib/site";
 import { sanitizeProductHtml } from "@/lib/sanitize";
+import { stripContentNoun } from "@/lib/utils";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -97,6 +98,14 @@ const ProductPage = async ({ params }: ProductPageProps) => {
     { label: "Generic Name", value: product.genericName },
     { label: "Strength", value: product.strength },
     { label: "Dosage Form", value: product.dosageForm },
+    {
+      label: "Sold as",
+      value: product.sellByStrip
+        ? product.stripsPerBox && product.unitsPerStrip
+          ? `Box (${product.stripsPerBox} strips) or single strip (${product.unitsPerStrip} ${stripContentNoun(product, product.unitsPerStrip)})`
+          : "Box or single strip"
+        : undefined,
+    },
     { label: "Brand", value: brand?.title },
     { label: "Manufacturer", value: product.manufacturer },
     { label: "Category", value: category?.title },
@@ -169,6 +178,7 @@ const ProductPage = async ({ params }: ProductPageProps) => {
                 price={product.price}
                 discount={product.discount}
                 className="text-2xl"
+                unitSuffix={product.sellByStrip ? "/ box" : undefined}
               />
               {product.discount > 0 && (
                 <span className="rounded-md bg-shop_orange px-2 py-0.5 text-xs font-semibold text-white">
@@ -184,8 +194,12 @@ const ProductPage = async ({ params }: ProductPageProps) => {
             >
               {inStock
                 ? lowStock
-                  ? `In stock — only ${product.stock} left`
-                  : "In stock"
+                  ? product.sellByStrip
+                    ? `In stock — ${product.stock} strip${product.stock === 1 ? "" : "s"} left`
+                    : `In stock — only ${product.stock} left`
+                  : product.sellByStrip
+                    ? `${product.stock} strip${product.stock === 1 ? "" : "s"} in stock`
+                    : "In stock"
                 : "Out of stock"}
             </p>
 
@@ -211,14 +225,13 @@ const ProductPage = async ({ params }: ProductPageProps) => {
               {product.description}
             </p>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <AddToCartButton
-                product={product}
-                className="h-11 w-full sm:w-56"
-              />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+              <div className="min-w-0 flex-1">
+                <ProductPurchaseControls product={product} layout="detail" />
+              </div>
               <AddToWishlistButton
                 product={product}
-                className="h-11 w-11 self-start rounded-lg"
+                className="h-11 w-11 shrink-0 rounded-lg"
               />
             </div>
 

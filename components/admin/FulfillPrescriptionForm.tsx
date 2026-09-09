@@ -8,9 +8,10 @@ import {
   markPrescriptionRequestInProgress,
   rejectPrescriptionRequest,
 } from "@/lib/actions/prescription-request";
-import { formatPrice, getDiscountedPrice, cn } from "@/lib/utils";
+import { formatPrice, cn } from "@/lib/utils";
+import { unitPriceForPack } from "@/lib/pack";
 import type { PrescriptionRequestRecord } from "@/lib/prescription-requests";
-import type { Product } from "@/types";
+import type { PackType, Product } from "@/types";
 
 type Line = {
   productId: string;
@@ -18,6 +19,7 @@ type Line = {
   sku: string;
   unitPrice: number;
   quantity: number;
+  packType: PackType;
 };
 
 interface FulfillPrescriptionFormProps {
@@ -62,11 +64,15 @@ const FulfillPrescriptionForm = ({ request }: FulfillPrescriptionFormProps) => {
   };
 
   const addProduct = (product: Product) => {
+    const packType: PackType = product.sellByStrip ? "box" : "unit";
     setLines((prev) => {
-      const existing = prev.find((line) => line.productId === product.id);
+      const existing = prev.find(
+        (line) =>
+          line.productId === product.id && line.packType === packType,
+      );
       if (existing) {
         return prev.map((line) =>
-          line.productId === product.id
+          line.productId === product.id && line.packType === packType
             ? { ...line, quantity: line.quantity + 1 }
             : line,
         );
@@ -77,8 +83,9 @@ const FulfillPrescriptionForm = ({ request }: FulfillPrescriptionFormProps) => {
           productId: product.id,
           name: product.name,
           sku: product.sku,
-          unitPrice: getDiscountedPrice(product.price, product.discount),
+          unitPrice: unitPriceForPack(product, packType),
           quantity: 1,
+          packType,
         },
       ];
     });
@@ -231,13 +238,18 @@ const FulfillPrescriptionForm = ({ request }: FulfillPrescriptionFormProps) => {
               <ul className="mt-4 divide-y divide-black/5 rounded-xl border border-black/10">
                 {lines.map((line) => (
                   <li
-                    key={line.productId}
+                    key={`${line.productId}:${line.packType}`}
                     className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 text-sm"
                   >
                     <div className="min-w-0">
                       <p className="font-medium text-darkColor">{line.name}</p>
                       <p className="text-xs text-lightColor">
                         {line.sku} · {formatPrice(line.unitPrice)}
+                        {line.packType === "box"
+                          ? " · Box"
+                          : line.packType === "strip"
+                            ? " · Strip"
+                            : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -252,7 +264,8 @@ const FulfillPrescriptionForm = ({ request }: FulfillPrescriptionFormProps) => {
                           );
                           setLines((prev) =>
                             prev.map((row) =>
-                              row.productId === line.productId
+                              row.productId === line.productId &&
+                              row.packType === line.packType
                                 ? { ...row, quantity }
                                 : row,
                             ),
@@ -265,7 +278,11 @@ const FulfillPrescriptionForm = ({ request }: FulfillPrescriptionFormProps) => {
                         onClick={() =>
                           setLines((prev) =>
                             prev.filter(
-                              (row) => row.productId !== line.productId,
+                              (row) =>
+                                !(
+                                  row.productId === line.productId &&
+                                  row.packType === line.packType
+                                ),
                             ),
                           )
                         }
@@ -294,6 +311,7 @@ const FulfillPrescriptionForm = ({ request }: FulfillPrescriptionFormProps) => {
                   lines.map((line) => ({
                     productId: line.productId,
                     quantity: line.quantity,
+                    packType: line.packType,
                   })),
                 ),
               );

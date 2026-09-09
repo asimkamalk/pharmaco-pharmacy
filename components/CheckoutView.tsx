@@ -19,10 +19,16 @@ import PrescriptionUpload, {
 } from "./PrescriptionUpload";
 import { useCart } from "@/hooks/useCart";
 import { useAddresses } from "@/hooks/useAddresses";
+import { useDeliveryQuote } from "@/hooks/useDeliveryQuote";
 import { useIsHydrated } from "@/hooks";
 import { placeOrder } from "@/lib/orders";
+import {
+  formatPackOrderLabel,
+  listPriceForPack,
+  unitPriceForPack,
+} from "@/lib/pack";
 import { checkoutFormSchema } from "@/lib/validations";
-import { formatPrice, getDiscountedPrice, cn } from "@/lib/utils";
+import { formatPrice, cn } from "@/lib/utils";
 import { useSiteConfig } from "@/components/SiteConfigProvider";
 import type { PaymentMethod } from "@/types";
 
@@ -73,6 +79,11 @@ const CheckoutView = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
   );
+  const [draftLocation, setDraftLocation] = useState<{
+    city: string;
+    area: string;
+    phase?: string;
+  } | null>(null);
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("cash_on_delivery");
   const [paymentReference, setPaymentReference] = useState("");
@@ -94,27 +105,36 @@ const CheckoutView = () => {
   const subtotal = items.reduce(
     (total, item) =>
       total +
-      getDiscountedPrice(item.product.price, item.product.discount) *
-        item.quantity,
+      unitPriceForPack(item.product, item.packType ?? "unit") * item.quantity,
     0,
   );
-  const discountTotal = items.reduce(
-    (total, item) =>
-      total +
-      (item.product.price -
-        getDiscountedPrice(item.product.price, item.product.discount)) *
-        item.quantity,
-    0,
-  );
-  const deliveryFee =
-    subtotal >= siteConfig.delivery.freeDeliveryAbove
-      ? 0
-      : siteConfig.delivery.standardFee;
-  const grandTotal = subtotal + deliveryFee;
+  const discountTotal = items.reduce((total, item) => {
+    const pack = item.packType ?? "unit";
+    const list = listPriceForPack(item.product, pack);
+    const paid = unitPriceForPack(item.product, pack);
+    return total + (list - paid) * item.quantity;
+  }, 0);
 
   const selectedAddress = addresses.find(
     (address) => address.id === activeAddressId,
   );
+
+  const quoteCity = draftLocation?.city ?? selectedAddress?.city;
+  const quoteArea = draftLocation?.area ?? selectedAddress?.area;
+  const quotePhase =
+    draftLocation?.phase ??
+    selectedAddress?.phase ??
+    (selectedAddress?.area?.match(/phase\s*[1-7]/i)?.[0] ?? undefined);
+
+  const { fee: deliveryFee, quote: deliveryQuote } = useDeliveryQuote(
+    quoteCity,
+    quoteArea,
+    subtotal,
+    siteConfig.delivery.standardFee,
+    siteConfig.delivery.freeDeliveryAbove,
+    quotePhase,
+  );
+  const grandTotal = subtotal + deliveryFee;
 
   const handlePlaceOrder = async () => {
     const parsed = checkoutFormSchema.safeParse({
@@ -167,6 +187,7 @@ const CheckoutView = () => {
         items: items.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
+          packType: item.packType ?? "unit",
         })),
       });
 
@@ -224,6 +245,7 @@ const CheckoutView = () => {
               selectable
               selectedId={activeAddressId}
               onSelect={setSelectedAddressId}
+              onDraftLocationChange={setDraftLocation}
             />
             {errors.addressId && (
               <p className="mt-3 text-xs text-shop_orange">{errors.addressId}</p>
@@ -427,8 +449,10 @@ const CheckoutView = () => {
               Order Summary
             </h2>
             <ul className="max-h-64 space-y-3 overflow-y-auto">
-              {items.map((item) => (
-                <li key={item.product.id} className="flex gap-3">
+              {items.map((item) => {
+                const pack = item.packType ?? "unit";
+                return (
+                <li key={`${item.product.id}:${pack}`} className="flex gap-3">
                   <Image
                     src={item.product.images[0]}
                     alt=""
@@ -441,17 +465,21 @@ const CheckoutView = () => {
                       {item.product.name}
                     </p>
                     <p className="text-xs text-lightColor">
-                      Qty {item.quantity} ·{" "}
+                      {formatPackOrderLabel({
+                        packType: pack,
+                        quantity: item.quantity,
+                        unitsPerStrip: item.product.unitsPerStrip,
+                        stripsPerBox: item.product.stripsPerBox,
+                      })}{" "}
+                      ·{" "}
                       {formatPrice(
-                        getDiscountedPrice(
-                          item.product.price,
-                          item.product.discount,
-                        ) * item.quantity,
+                        unitPriceForPack(item.product, pack) * item.quantity,
                       )}
                     </p>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
 
             <dl className="space-y-2 border-t border-black/10 pt-3 text-sm">
@@ -461,14 +489,23 @@ const CheckoutView = () => {
               </div>
               {discountTotal > 0 && (
                 <div className="flex justify-between">
-                  <dt className="text-lightColor">Discount</dt>
+                  <dt className="text-lightColor">Product savings</dt>
                   <dd className="font-medium text-shop_light_green">
                     −{formatPrice(discountTotal)}
                   </dd>
                 </div>
               )}
               <div className="flex justify-between">
-                <dt className="text-lightColor">Delivery</dt>
+                <dt className="text-lightColor">
+                  Delivery
+                  {deliveryQuote?.zoneLabel
+                    ? ` · ${deliveryQuote.zoneLabel}`
+                    : draftLocation?.phase
+                      ? ` · ${draftLocation.phase}`
+                      : selectedAddress
+                        ? ` · ${selectedAddress.area}, ${selectedAddress.city}`
+                        : ""}
+                </dt>
                 <dd className="font-medium">
                   {deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)}
                 </dd>

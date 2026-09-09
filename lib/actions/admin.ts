@@ -37,6 +37,11 @@ const productSchema = z.object({
   brandId: z.string().min(1, "Brand is required"),
   imageUrl: z.string().trim().min(1, "Product image is required"),
   requiresPrescription: z.coerce.boolean().optional(),
+  sellByStrip: z.coerce.boolean().optional(),
+  unitsPerStrip: z.coerce.number().int().min(1).max(500).optional(),
+  stripsPerBox: z.coerce.number().int().min(1).max(500).optional(),
+  stripPrice: z.coerce.number().min(0).optional(),
+  stripPurchasePrice: z.coerce.number().min(0).optional(),
   isFeatured: z.coerce.boolean().optional(),
   isArchived: z.coerce.boolean().optional(),
   genericName: z.string().trim().optional(),
@@ -74,6 +79,18 @@ export async function saveProduct(formData: FormData) {
     brandId: formData.get("brandId"),
     imageUrl: formData.get("imageUrl") || "/images/products/placeholder.svg",
     requiresPrescription: formBool(formData, "requiresPrescription"),
+    sellByStrip: formBool(formData, "sellByStrip"),
+    unitsPerStrip: formData.get("unitsPerStrip") || undefined,
+    stripsPerBox: formData.get("stripsPerBox") || undefined,
+    stripPrice:
+      formData.get("stripPrice") === null || formData.get("stripPrice") === ""
+        ? undefined
+        : formData.get("stripPrice"),
+    stripPurchasePrice:
+      formData.get("stripPurchasePrice") === null ||
+      formData.get("stripPurchasePrice") === ""
+        ? undefined
+        : formData.get("stripPurchasePrice"),
     isFeatured: formBool(formData, "isFeatured"),
     isArchived: formBool(formData, "isArchived"),
     genericName: String(formData.get("genericName") ?? "") || undefined,
@@ -87,6 +104,25 @@ export async function saveProduct(formData: FormData) {
   }
 
   const data = parsed.data;
+  if (data.sellByStrip && (!data.unitsPerStrip || data.unitsPerStrip < 1)) {
+    redirectWithFlash(back, {
+      error: "Enter how many tablets/capsules are in one strip",
+    });
+  }
+  if (data.sellByStrip && (!data.stripsPerBox || data.stripsPerBox < 1)) {
+    redirectWithFlash(back, {
+      error: "Enter how many strips are in one box",
+    });
+  }
+  if (
+    data.sellByStrip &&
+    (data.stripPrice === undefined || data.stripPrice < 0)
+  ) {
+    redirectWithFlash(back, {
+      error: "Enter the selling price for a single strip",
+    });
+  }
+
   const slug = data.slug?.trim() || slugify(data.name);
 
   let imageUrl = data.imageUrl;
@@ -123,6 +159,13 @@ export async function saveProduct(formData: FormData) {
     categoryId: data.categoryId,
     brandId: data.brandId,
     requiresPrescription: Boolean(data.requiresPrescription),
+    sellByStrip: Boolean(data.sellByStrip),
+    unitsPerStrip: data.sellByStrip ? data.unitsPerStrip || null : null,
+    stripsPerBox: data.sellByStrip ? data.stripsPerBox || null : null,
+    stripPrice: data.sellByStrip ? data.stripPrice ?? null : null,
+    stripPurchasePrice: data.sellByStrip
+      ? data.stripPurchasePrice ?? null
+      : null,
     isFeatured: Boolean(data.isFeatured),
     isArchived: Boolean(data.isArchived),
     genericName: data.genericName || null,
@@ -310,6 +353,66 @@ export async function deleteOrder(formData: FormData) {
   revalidatePath("/admin", "layout");
   revalidatePath("/admin");
   redirectWithFlash("/admin/orders", { saved: true });
+}
+
+export async function applyOrderDiscount(formData: FormData) {
+  await requireAdmin();
+  const orderId = String(formData.get("orderId") ?? "").trim();
+  const back = orderId ? `/admin/orders/${orderId}` : "/admin/orders";
+  const discountPercent = Math.min(
+    100,
+    Math.max(0, Math.round(Number(formData.get("discountPercent") ?? 0) || 0)),
+  );
+
+  if (!orderId) {
+    redirectWithFlash("/admin/orders", { error: "Order not found" });
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      subtotal: true,
+      discountTotal: true,
+      customerDiscountAmount: true,
+      deliveryFee: true,
+    },
+  });
+
+  if (!order) {
+    redirectWithFlash("/admin/orders", { error: "Order not found" });
+  }
+
+  const productDiscountTotal = Math.max(
+    0,
+    order.discountTotal - (order.customerDiscountAmount ?? 0),
+  );
+  const orderDiscountAmount = Math.round(
+    (order.subtotal * discountPercent) / 100,
+  );
+
+  try {
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        customerDiscountPercent: discountPercent,
+        customerDiscountAmount: orderDiscountAmount,
+        discountTotal: productDiscountTotal + orderDiscountAmount,
+        grandTotal: Math.max(
+          0,
+          order.subtotal - orderDiscountAmount + order.deliveryFee,
+        ),
+      },
+    });
+  } catch {
+    redirectWithFlash(back, { error: "Could not apply order discount" });
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath("/account/orders");
+  revalidatePath(`/account/orders/${orderId}`);
+  redirectWithFlash(back, { saved: true });
 }
 
 export async function updateCustomer(formData: FormData) {

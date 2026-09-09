@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { saveProduct } from "@/lib/actions/admin";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 import MetaDescriptionField from "@/components/admin/MetaDescriptionField";
@@ -30,6 +31,11 @@ interface ProductFormProps {
     brandId: string;
     imageUrl: string;
     requiresPrescription: boolean;
+    sellByStrip?: boolean;
+    unitsPerStrip?: number | null;
+    stripsPerBox?: number | null;
+    stripPrice?: number | null;
+    stripPurchasePrice?: number | null;
     isFeatured: boolean;
     isArchived: boolean;
     genericName?: string | null;
@@ -43,6 +49,10 @@ const field =
   "w-full rounded-lg border border-black/15 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-shop_light_green";
 
 const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
+  const [sellByStrip, setSellByStrip] = useState(
+    Boolean(product?.sellByStrip),
+  );
+
   return (
     <form action={saveProduct} className="space-y-6">
       {product?.id && <input type="hidden" name="id" value={product.id} />}
@@ -81,6 +91,7 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-darkColor">
             Purchase price (PKR)
+            {sellByStrip ? " · per box" : ""}
           </span>
           <input
             name="purchasePrice"
@@ -96,6 +107,7 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-darkColor">
             Selling price (PKR)
+            {sellByStrip ? " · per box" : ""}
           </span>
           <input
             name="price"
@@ -121,7 +133,9 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
         </label>
 
         <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-darkColor">Stock</span>
+          <span className="text-sm font-medium text-darkColor">
+            Stock{sellByStrip ? " · strips in inventory" : ""}
+          </span>
           <input
             name="stock"
             type="number"
@@ -130,6 +144,11 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
             defaultValue={product?.stock ?? 0}
             className={field}
           />
+          {sellByStrip && (
+            <span className="text-xs text-lightColor">
+              Count strips on hand. Selling 1 box deducts “strips per box”.
+            </span>
+          )}
         </label>
 
         <label className="block space-y-1.5">
@@ -200,7 +219,6 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
           name="longDescription"
           label="Long description"
           defaultValue={product?.longDescription || ""}
-          placeholder="Full product details, usage notes, ingredients…"
         />
 
         <label className="block space-y-1.5">
@@ -213,6 +231,7 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
             className={field}
           />
         </label>
+
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-darkColor">Strength</span>
           <input
@@ -221,6 +240,7 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
             className={field}
           />
         </label>
+
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-darkColor">
             Dosage form
@@ -228,9 +248,11 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
           <input
             name="dosageForm"
             defaultValue={product?.dosageForm ?? ""}
+            placeholder="Tablet, Capsule…"
             className={field}
           />
         </label>
+
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-darkColor">
             Manufacturer
@@ -241,6 +263,82 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
             className={field}
           />
         </label>
+      </div>
+
+      <div className="space-y-3 rounded-xl border border-black/10 bg-shop_light_bg/40 p-4">
+        <label className="inline-flex items-center gap-2 text-sm font-medium text-darkColor">
+          <input
+            type="checkbox"
+            name="sellByStrip"
+            checked={sellByStrip}
+            onChange={(event) => setSellByStrip(event.target.checked)}
+          />
+          Sell as box + single strip
+        </label>
+        <p className="text-xs text-lightColor">
+          Customers can add a complete box (“Add to cart”) or a single strip.
+          Stock is tracked in strips.
+        </p>
+        {sellByStrip && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-darkColor">
+                Tablets / capsules per strip
+              </span>
+              <input
+                name="unitsPerStrip"
+                type="number"
+                min={1}
+                max={500}
+                required={sellByStrip}
+                defaultValue={product?.unitsPerStrip ?? 10}
+                className={field}
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-darkColor">
+                Strips per box
+              </span>
+              <input
+                name="stripsPerBox"
+                type="number"
+                min={1}
+                max={500}
+                required={sellByStrip}
+                defaultValue={product?.stripsPerBox ?? 10}
+                className={field}
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-darkColor">
+                Strip selling price (PKR)
+              </span>
+              <input
+                name="stripPrice"
+                type="number"
+                min={0}
+                step="0.01"
+                required={sellByStrip}
+                defaultValue={product?.stripPrice ?? 0}
+                className={field}
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-darkColor">
+                Strip purchase cost (PKR, optional)
+              </span>
+              <input
+                name="stripPurchasePrice"
+                type="number"
+                min={0}
+                step="0.01"
+                defaultValue={product?.stripPurchasePrice ?? ""}
+                placeholder="Auto = box cost ÷ strips"
+                className={field}
+              />
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-4 text-sm">

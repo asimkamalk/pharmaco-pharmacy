@@ -10,7 +10,14 @@ import PriceView from "./PriceView";
 import { useCart } from "@/hooks/useCart";
 import { useIsHydrated } from "@/hooks";
 import { formatPrice, getDiscountedPrice } from "@/lib/utils";
+import {
+  formatPackOrderLabel,
+  listPriceForPack,
+  unitPriceForPack,
+} from "@/lib/pack";
 import { useSiteConfig } from "@/components/SiteConfigProvider";
+import { useAddresses } from "@/hooks/useAddresses";
+import { useDeliveryQuote } from "@/hooks/useDeliveryQuote";
 
 const CartView = () => {
   const siteConfig = useSiteConfig();
@@ -18,6 +25,33 @@ const CartView = () => {
   const items = useCart((state) => state.items);
   const removeItem = useCart((state) => state.removeItem);
   const clearCart = useCart((state) => state.clearCart);
+  const getDefault = useAddresses((state) => state.getDefault);
+  const defaultAddress = isHydrated ? getDefault() : undefined;
+
+  const subtotal = items.reduce(
+    (total, item) =>
+      total +
+      unitPriceForPack(item.product, item.packType ?? "unit") * item.quantity,
+    0,
+  );
+  const totalDiscount = items.reduce((total, item) => {
+    const pack = item.packType ?? "unit";
+    const list = listPriceForPack(item.product, pack);
+    const paid = getDiscountedPrice(list, item.product.discount);
+    return total + (list - paid) * item.quantity;
+  }, 0);
+  const { fee: deliveryFee, quote: deliveryQuote } = useDeliveryQuote(
+    defaultAddress?.city,
+    defaultAddress?.area,
+    subtotal,
+    siteConfig.delivery.standardFee,
+    siteConfig.delivery.freeDeliveryAbove,
+    defaultAddress?.phase,
+  );
+  const grandTotal = subtotal + deliveryFee;
+  const hasPrescriptionItems = items.some(
+    (item) => item.product.requiresPrescription,
+  );
 
   if (!isHydrated) {
     return (
@@ -45,30 +79,6 @@ const CartView = () => {
     );
   }
 
-  const subtotal = items.reduce(
-    (total, item) =>
-      total +
-      getDiscountedPrice(item.product.price, item.product.discount) *
-        item.quantity,
-    0,
-  );
-  const totalDiscount = items.reduce(
-    (total, item) =>
-      total +
-      (item.product.price -
-        getDiscountedPrice(item.product.price, item.product.discount)) *
-        item.quantity,
-    0,
-  );
-  const deliveryFee =
-    subtotal >= siteConfig.delivery.freeDeliveryAbove
-      ? 0
-      : siteConfig.delivery.standardFee;
-  const grandTotal = subtotal + deliveryFee;
-  const hasPrescriptionItems = items.some(
-    (item) => item.product.requiresPrescription,
-  );
-
   return (
     <Container className="py-8 sm:py-10">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -89,9 +99,12 @@ const CartView = () => {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <ul className="space-y-4 lg:col-span-2">
-          {items.map((item) => (
+          {items.map((item) => {
+            const pack = item.packType ?? "unit";
+            const lineList = listPriceForPack(item.product, pack) * item.quantity;
+            return (
             <li
-              key={item.product.id}
+              key={`${item.product.id}:${pack}`}
               className="flex gap-4 rounded-xl border border-black/10 bg-white p-4"
             >
               <Link
@@ -122,9 +135,22 @@ const CartView = () => {
                         Prescription Required
                       </span>
                     )}
+                    <p className="mt-1 text-[11px] font-medium text-shop_dark_green">
+                      {pack === "box"
+                        ? "Complete box"
+                        : pack === "strip"
+                          ? "Single strip"
+                          : "Item"}
+                      {pack === "box" && item.product.stripsPerBox
+                        ? ` · ${item.product.stripsPerBox} strips`
+                        : ""}
+                      {pack === "strip" && item.product.unitsPerStrip
+                        ? ` · ${item.product.unitsPerStrip} per strip`
+                        : ""}
+                    </p>
                   </div>
                   <button
-                    onClick={() => removeItem(item.product.id)}
+                    onClick={() => removeItem(item.product.id, pack)}
                     aria-label={`Remove ${item.product.name} from cart`}
                     className="text-lightColor transition-colors duration-200 hover:text-shop_orange"
                   >
@@ -133,18 +159,31 @@ const CartView = () => {
                 </div>
 
                 <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
-                  <AddToCartButton product={item.product} className="w-28" />
+                  <AddToCartButton
+                    product={item.product}
+                    packType={pack}
+                    className="w-28"
+                  />
                   <div className="text-right">
                     <PriceView
-                      price={item.product.price * item.quantity}
+                      price={lineList}
                       discount={item.product.discount}
                       className="justify-end text-sm"
                     />
+                    <p className="text-[11px] text-lightColor">
+                      {formatPackOrderLabel({
+                        packType: pack,
+                        quantity: item.quantity,
+                        unitsPerStrip: item.product.unitsPerStrip,
+                        stripsPerBox: item.product.stripsPerBox,
+                      })}
+                    </p>
                   </div>
                 </div>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
 
         <aside aria-label="Order summary">
@@ -169,7 +208,14 @@ const CartView = () => {
                 </div>
               )}
               <div className="flex justify-between">
-                <dt className="text-lightColor">Delivery</dt>
+                <dt className="text-lightColor">
+                  Delivery
+                  {deliveryQuote?.zoneLabel
+                    ? ` · ${deliveryQuote.zoneLabel}`
+                    : defaultAddress
+                      ? ` · ${defaultAddress.area}`
+                      : " (estimate)"}
+                </dt>
                 <dd className="font-medium text-darkColor">
                   {deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)}
                 </dd>

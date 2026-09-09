@@ -5,6 +5,7 @@ import {
   Home,
   ImageIcon,
   LayoutDashboard,
+  MapPinned,
   Package,
   Settings,
   ShoppingBag,
@@ -59,7 +60,14 @@ export const adminNavGroups: AdminNavGroup[] = [
   },
   {
     label: "System",
-    items: [{ href: "/admin/settings", label: "Settings", icon: Settings }],
+    items: [
+      { href: "/admin/settings", label: "Settings", icon: Settings },
+      {
+        href: "/admin/delivery-zones",
+        label: "Delivery zones",
+        icon: MapPinned,
+      },
+    ],
   },
 ];
 

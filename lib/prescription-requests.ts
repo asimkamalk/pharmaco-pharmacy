@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { getDiscountedPrice } from "@/lib/utils";
-import { getSiteConfig } from "@/lib/site";
-import type { PaymentMethod } from "@/types";
+import {
+  normalizePackType,
+  purchasePriceForPack,
+  stockUnitsForLine,
+  unitPriceForPack,
+} from "@/lib/pack";
+import { resolveDeliveryFee } from "@/lib/delivery";
+import type { PackType, PaymentMethod } from "@/types";
 
 export type PrescriptionRequestStatus =
   | "pending"
@@ -206,7 +211,11 @@ export async function updatePrescriptionRequestStatus(
   return mapRequest(row);
 }
 
-export type FulfillLine = { productId: string; quantity: number };
+export type FulfillLine = {
+  productId: string;
+  quantity: number;
+  packType?: PackType;
+};
 
 export type FulfillPrescriptionRequestInput = {
   requestId: string;
@@ -260,47 +269,78 @@ export async function fulfillPrescriptionRequest(
     const product = productMap[item.productId];
     if (!product) throw new Error("Product not found");
     if (item.quantity < 1) throw new Error("Invalid quantity");
-    if (product.stock < item.quantity) {
+
+    const packType = normalizePackType(
+      item.packType ?? (product.sellByStrip ? "box" : "unit"),
+    );
+    const stockNeeded = stockUnitsForLine(product, packType, item.quantity);
+    if (product.stock < stockNeeded) {
       throw new Error(`Insufficient stock for ${product.name}`);
     }
+
     return {
       product,
       quantity: item.quantity,
-      unitPrice: getDiscountedPrice(product.price, product.discount),
+      packType,
+      unitPrice: unitPriceForPack(product, packType),
+      purchasePrice: purchasePriceForPack(product, packType),
+      stockNeeded,
+      listPrice:
+        packType === "strip" ? (product.stripPrice ?? 0) : product.price,
     };
   });
+
+  const stockDemand = new Map<string, number>();
+  for (const line of lineItems) {
+    stockDemand.set(
+      line.product.id,
+      (stockDemand.get(line.product.id) ?? 0) + line.stockNeeded,
+    );
+  }
+  for (const line of lineItems) {
+    if (line.product.stock < (stockDemand.get(line.product.id) ?? 0)) {
+      throw new Error(`Insufficient stock for ${line.product.name}`);
+    }
+  }
 
   const subtotal = lineItems.reduce(
     (total, line) => total + line.unitPrice * line.quantity,
     0,
   );
-  const discountTotal = lineItems.reduce(
+  const productDiscountTotal = lineItems.reduce(
     (total, line) =>
-      total + (line.product.price - line.unitPrice) * line.quantity,
+      total + (line.listPrice - line.unitPrice) * line.quantity,
     0,
   );
   const costTotal = lineItems.reduce(
-    (total, line) => total + line.product.purchasePrice * line.quantity,
+    (total, line) => total + line.purchasePrice * line.quantity,
     0,
   );
-  const siteConfig = await getSiteConfig();
-  const deliveryFee =
-    subtotal >= siteConfig.delivery.freeDeliveryAbove
-      ? 0
-      : siteConfig.delivery.standardFee;
+
+  const discountTotal = productDiscountTotal;
+
+  const delivery = await resolveDeliveryFee({
+    city: request.city,
+    area: request.area,
+    subtotal,
+  });
+  const deliveryFee = delivery.fee;
 
   const email =
     request.customerEmail?.trim() ||
     `${request.customerPhone.replace(/\s+/g, "")}@customer.local`;
 
   const created = await prisma.$transaction(async (tx) => {
-    for (const line of lineItems) {
+    for (const [productId, needed] of stockDemand.entries()) {
       const updated = await tx.product.updateMany({
-        where: { id: line.product.id, stock: { gte: line.quantity } },
-        data: { stock: { decrement: line.quantity } },
+        where: { id: productId, stock: { gte: needed } },
+        data: { stock: { decrement: needed } },
       });
       if (updated.count !== 1) {
-        throw new Error(`Insufficient stock for ${line.product.name}`);
+        const product = productMap[productId];
+        throw new Error(
+          `Insufficient stock for ${product?.name ?? "product"}`,
+        );
       }
     }
 
@@ -339,7 +379,10 @@ export async function fulfillPrescriptionRequest(
         }`,
         subtotal,
         discountTotal,
+        customerDiscountPercent: 0,
+        customerDiscountAmount: 0,
         deliveryFee,
+        deliveryZoneLabel: delivery.zoneLabel,
         costTotal,
         grandTotal: subtotal + deliveryFee,
         items: {
@@ -353,9 +396,17 @@ export async function fulfillPrescriptionRequest(
             sku: line.product.sku,
             quantity: line.quantity,
             unitPrice: line.unitPrice,
-            purchasePrice: line.product.purchasePrice,
+            purchasePrice: line.purchasePrice,
             discount: line.product.discount,
             requiresPrescription: line.product.requiresPrescription,
+            packType: line.packType,
+            soldAsStrip: line.packType === "strip",
+            unitsPerStrip: line.product.sellByStrip
+              ? line.product.unitsPerStrip
+              : null,
+            stripsPerBox: line.product.sellByStrip
+              ? line.product.stripsPerBox
+              : null,
           })),
         },
       },

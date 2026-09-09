@@ -3,6 +3,7 @@
 import { FC, useEffect } from "react";
 import Logo from "./Logo";
 import { X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { headerData } from "@/constants/data";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,6 +17,7 @@ interface SideMenuProps {
 
 const SideMenu: FC<SideMenuProps> = ({ isOpen, onClose }: SideMenuProps) => {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const sidebarRef = useOutsideClick<HTMLDivElement>(onClose);
 
   useEffect(() => {
@@ -68,6 +70,15 @@ const SideMenu: FC<SideMenuProps> = ({ isOpen, onClose }: SideMenuProps) => {
           >
             Order by Prescription
           </Link>
+          {session?.user && (
+            <Link
+              href="/account/orders"
+              onClick={onClose}
+              className={`hover:text-shop_light_green ${pathname === "/account/orders" && "text-shop_light_green"}`}
+            >
+              My Orders
+            </Link>
+          )}
         </div>
         <SocialMedia />
       </div>

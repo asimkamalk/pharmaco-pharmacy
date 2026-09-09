@@ -170,6 +170,14 @@ const AdminOrdersPage = async ({ searchParams }: PageProps) => {
                     <p className="text-xs text-lightColor">
                       {order.customerPhone}
                     </p>
+                    {typeof order.customerOrderCount === "number" ? (
+                      <p className="mt-0.5 text-xs font-medium text-shop_dark_green">
+                        {order.customerOrderCount} order
+                        {order.customerOrderCount === 1 ? "" : "s"}
+                      </p>
+                    ) : (
+                      <p className="mt-0.5 text-xs text-lightColor">Guest</p>
+                    )}
                   </td>
                   <td className="px-4 py-3 capitalize">
                     {order.paymentMethod.replaceAll("_", " ")}

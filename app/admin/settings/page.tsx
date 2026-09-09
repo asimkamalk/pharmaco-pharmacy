@@ -117,7 +117,19 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
         </section>
 
         <section className="space-y-3">
-          <h2 className="font-semibold text-darkColor">Delivery</h2>
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <h2 className="font-semibold text-darkColor">Delivery</h2>
+            <Link
+              href="/admin/delivery-zones"
+              className="text-sm font-medium text-shop_light_green hover:text-shop_dark_green"
+            >
+              Manage location fees →
+            </Link>
+          </div>
+          <p className="text-xs text-lightColor">
+            Standard fee is the fallback when no city/area zone matches. Prefer
+            delivery zones for Hayatabad, University Town, etc.
+          </p>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="space-y-1 text-sm">
               <span>Standard fee (PKR)</span>

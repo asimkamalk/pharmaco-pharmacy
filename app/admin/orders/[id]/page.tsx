@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminFlash from "@/components/admin/AdminFlash";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
+import OrderDiscountForm from "@/components/admin/OrderDiscountForm";
 import OrderStatusForm from "@/components/admin/OrderStatusForm";
 import PrescriptionReview from "@/components/admin/PrescriptionReview";
 import { getOrderById } from "@/lib/orders";
 import { formatPkDateTime } from "@/lib/datetime";
+import { formatPackOrderLabel, normalizePackType } from "@/lib/pack";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata = { title: "Order Detail · Admin" };
@@ -29,7 +31,7 @@ const AdminOrderDetailPage = async ({ params, searchParams }: PageProps) => {
       <AdminFlash
         saved={saved}
         error={error}
-        savedMessage="Prescription review saved."
+        savedMessage="Order updated."
       />
 
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -84,11 +86,73 @@ const AdminOrderDetailPage = async ({ params, searchParams }: PageProps) => {
           <p className="text-sm">{order.customerName}</p>
           <p className="text-sm text-lightColor">{order.customerPhone}</p>
           <p className="text-sm text-lightColor">{order.customerEmail}</p>
+          {typeof order.customerOrderCount === "number" ? (
+            <p className="mt-2 text-sm">
+              <span className="font-semibold text-shop_dark_green">
+                {order.customerOrderCount} order
+                {order.customerOrderCount === 1 ? "" : "s"}
+              </span>
+              {order.userId ? (
+                <>
+                  {" · "}
+                  <Link
+                    href={`/admin/customers/${order.userId}`}
+                    className="font-medium text-shop_light_green hover:text-shop_dark_green"
+                  >
+                    View customer
+                  </Link>
+                </>
+              ) : null}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-lightColor">Guest checkout</p>
+          )}
           <p className="mt-3 text-sm text-lightColor">
             {order.shippingAddress.addressLine}
             <br />
             {order.shippingAddress.area}, {order.shippingAddress.city}
           </p>
+          <dl className="mt-4 space-y-1.5 border-t border-black/10 pt-3 text-sm">
+            <div className="flex justify-between gap-3">
+              <dt className="text-lightColor">Subtotal</dt>
+              <dd>{formatPrice(order.subtotal)}</dd>
+            </div>
+            {(order.customerDiscountAmount ?? 0) > 0 && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-lightColor">
+                  Order discount ({order.customerDiscountPercent}%)
+                </dt>
+                <dd className="text-shop_light_green">
+                  −{formatPrice(order.customerDiscountAmount ?? 0)}
+                </dd>
+              </div>
+            )}
+            <div className="flex justify-between gap-3">
+              <dt className="text-lightColor">
+                Delivery
+                {order.deliveryZoneLabel
+                  ? ` · ${order.deliveryZoneLabel}`
+                  : ""}
+              </dt>
+              <dd>
+                {order.deliveryFee === 0
+                  ? "Free"
+                  : formatPrice(order.deliveryFee)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3 font-semibold">
+              <dt>Grand total</dt>
+              <dd className="text-shop_dark_green">
+                {formatPrice(order.grandTotal)}
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-4 border-t border-black/10 pt-4">
+            <OrderDiscountForm
+              orderId={order.id}
+              discountPercent={order.customerDiscountPercent ?? 0}
+            />
+          </div>
         </section>
 
         <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
@@ -131,8 +195,19 @@ const AdminOrderDetailPage = async ({ params, searchParams }: PageProps) => {
                 <div>
                   <p className="font-semibold text-darkColor">{item.name}</p>
                   <p className="text-xs text-lightColor">
-                    SKU {item.sku} · Qty {item.quantity} · Cost{" "}
-                    {formatPrice(item.purchasePrice ?? 0)} · Sell{" "}
+                    SKU {item.sku} ·{" "}
+                    <span className="font-semibold text-shop_dark_green">
+                      {formatPackOrderLabel({
+                        packType: normalizePackType(
+                          item.packType,
+                          item.soldAsStrip,
+                        ),
+                        quantity: item.quantity,
+                        unitsPerStrip: item.unitsPerStrip,
+                        stripsPerBox: item.stripsPerBox,
+                      })}
+                    </span>{" "}
+                    · Cost {formatPrice(item.purchasePrice ?? 0)} · Sell{" "}
                     {formatPrice(item.unitPrice)}
                     {item.requiresPrescription ? " · Rx" : ""}
                   </p>

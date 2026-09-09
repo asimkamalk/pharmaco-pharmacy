@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import AddToCartButton from "./AddToCartButton";
 import AddToWishlistButton from "./AddToWishlistButton";
 import PriceView from "./PriceView";
+import ProductPurchaseControls from "./ProductPurchaseControls";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -76,8 +76,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </h3>
 
         <div className="mt-auto space-y-3 pt-1">
-          <PriceView price={product.price} discount={product.discount} />
-          <AddToCartButton product={product} className="w-full" />
+          <PriceView
+            price={product.price}
+            discount={product.discount}
+            unitSuffix={product.sellByStrip ? "/ box" : undefined}
+          />
+          <ProductPurchaseControls product={product} layout="card" />
         </div>
       </div>
     </article>

@@ -10,6 +10,7 @@ import type { Product } from "@/types";
 type ReorderLine = {
   productId: string;
   quantity: number;
+  packType?: "unit" | "box" | "strip";
 };
 
 interface ReorderButtonProps {
@@ -61,7 +62,7 @@ const ReorderButton = ({
           skipped += 1;
           continue;
         }
-        addItem(product, line.quantity);
+        addItem(product, line.quantity, line.packType);
         added += 1;
       }
 

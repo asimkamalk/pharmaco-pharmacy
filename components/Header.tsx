@@ -3,6 +3,7 @@ import Container from "./Container";
 import FavouriteButton from "./FavouriteButton";
 import HeaderMenu from "./HeaderMenu";
 import Logo from "./Logo";
+import MyOrdersButton from "./MyOrdersButton";
 import OrderByPrescriptionButton from "./OrderByPrescriptionButton";
 import SearchBar from "./SearchBar";
 import Signin from "./Signin";
@@ -11,6 +12,7 @@ import { auth } from "@/auth";
 
 const Header = async () => {
   const session = await auth();
+  const isLoggedIn = Boolean(session?.user);
 
   return (
     <header className="sticky top-0 z-40 border-b border-shop_dark_green/10 bg-white/90 backdrop-blur-md">
@@ -25,6 +27,7 @@ const Header = async () => {
         <div className="flex shrink-0 items-center justify-end gap-2.5 sm:gap-3">
           <SearchBar />
           <OrderByPrescriptionButton />
+          {isLoggedIn && <MyOrdersButton />}
           <div className="hidden md:contents">
             <CartIcon />
             <FavouriteButton />

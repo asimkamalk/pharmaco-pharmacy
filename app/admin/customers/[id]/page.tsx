@@ -74,7 +74,10 @@ const AdminCustomerDetailPage = async ({ params, searchParams }: PageProps) => {
             Orders
           </p>
           <p className="mt-1 text-xl font-bold text-shop_dark_green">
-            {customer._count.orders}
+            {customer._count.orders}{" "}
+            <span className="text-sm font-medium text-lightColor">
+              order{customer._count.orders === 1 ? "" : "s"}
+            </span>
           </p>
         </div>
         <div className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
