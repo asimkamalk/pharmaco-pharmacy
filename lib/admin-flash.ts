@@ -3,10 +3,15 @@ import { redirect } from "next/navigation";
 /** Redirect to an admin path with a success or error flash in the query string. */
 export function redirectWithFlash(
   path: string,
-  flash: { saved?: boolean; error?: string; edit?: string },
+  flash: { saved?: boolean | string; error?: string; edit?: string },
 ): never {
   const url = new URL(path, "http://localhost");
-  if (flash.saved) url.searchParams.set("saved", "1");
+  if (flash.saved) {
+    url.searchParams.set(
+      "saved",
+      typeof flash.saved === "string" ? flash.saved : "1",
+    );
+  }
   if (flash.error) url.searchParams.set("error", flash.error);
   if (flash.edit) url.searchParams.set("edit", flash.edit);
   redirect(`${url.pathname}${url.search}`);

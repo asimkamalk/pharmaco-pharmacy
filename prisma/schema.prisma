@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -32,6 +33,7 @@ model User {
   orders        Order[]
   addresses     Address[]
   prescriptionRequests PrescriptionRequest[]
+  passwordResetRequests PasswordResetRequest[]
 }
 
 model Account {
@@ -408,4 +410,23 @@ model Media {
 
   @@index([folder])
   @@unique([url])
+}
+
+/** Customer asked admin to reset their password */
+model PasswordResetRequest {
+  id        String    @id @default(cuid())
+  email     String
+  username  String
+  /** pending | resolved | cancelled */
+  status    String    @default("pending")
+  userId    String?
+  adminNote String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  resolvedAt DateTime?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
 }

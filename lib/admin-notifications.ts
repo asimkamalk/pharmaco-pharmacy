@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export type AdminAttentionNotice = {
   id: string;
-  kind: "order" | "rx_request" | "rx_review";
+  kind: "order" | "rx_request" | "rx_review" | "password_reset";
   title: string;
   customerName: string;
   href: string;
@@ -17,8 +17,10 @@ export async function getPendingOrderNotifications(limit = 8) {
     pendingCount,
     rxReviewCount,
     rxRequestCount,
+    passwordResetCount,
     pendingOrders,
     rxRequests,
+    passwordResets,
   ] = await Promise.all([
     prisma.order.count({ where: { status: "pending" } }),
     prisma.order.count({
@@ -27,6 +29,7 @@ export async function getPendingOrderNotifications(limit = 8) {
     prisma.prescriptionRequest.count({
       where: { status: { in: ["pending", "in_progress"] } },
     }),
+    prisma.passwordResetRequest.count({ where: { status: "pending" } }),
     prisma.order.findMany({
       where: {
         OR: [
@@ -58,6 +61,19 @@ export async function getPendingOrderNotifications(limit = 8) {
         createdAt: true,
       },
     }),
+    prisma.passwordResetRequest.findMany({
+      where: { status: "pending" },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        status: true,
+        createdAt: true,
+        user: { select: { name: true } },
+      },
+    }),
   ]);
 
   const notices: AdminAttentionNotice[] = [
@@ -84,6 +100,15 @@ export async function getPendingOrderNotifications(limit = 8) {
       status: req.status,
       createdAt: req.createdAt.toISOString(),
     })),
+    ...passwordResets.map((req): AdminAttentionNotice => ({
+      id: req.id,
+      kind: "password_reset",
+      title: "Password reset",
+      customerName: req.user?.name || `@${req.username} · ${req.email}`,
+      href: "/admin/password-resets",
+      status: req.status,
+      createdAt: req.createdAt.toISOString(),
+    })),
   ]
     .sort(
       (a, b) =>
@@ -101,7 +126,8 @@ export async function getPendingOrderNotifications(limit = 8) {
     pendingCount,
     rxReviewCount,
     rxRequestCount,
-    attentionCount: orderAttention + rxRequestCount,
+    passwordResetCount,
+    attentionCount: orderAttention + rxRequestCount + passwordResetCount,
     orders: notices.map((n) => ({
       id: n.id,
       orderNumber: n.title,

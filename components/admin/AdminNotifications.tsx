@@ -141,7 +141,7 @@ const AdminNotifications = ({
             )}
           </div>
           <PopoverDescription className="text-xs text-lightColor">
-            Orders, Rx checkout reviews, and Order-by-Prescription requests
+            Orders, Rx requests, and password resets
             {pendingCount || rxReviewCount
               ? ` · ${pendingCount} pending · ${rxReviewCount} Rx reviews`
               : ""}
@@ -177,13 +177,19 @@ const AdminNotifications = ({
                         {relativeTime(order.createdAt)}
                         {order.kind === "rx_request"
                           ? " · Order by Rx"
-                          : order.needsRxReview
-                            ? " · Rx review"
-                            : ""}
+                          : order.kind === "password_reset"
+                            ? " · Password reset"
+                            : order.needsRxReview
+                              ? " · Rx review"
+                              : ""}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      {order.kind !== "rx_request" && order.grandTotal > 0 ? (
+                      {order.kind === "password_reset" ? (
+                        <p className="text-sm font-semibold text-shop_orange">
+                          Reset
+                        </p>
+                      ) : order.kind !== "rx_request" && order.grandTotal > 0 ? (
                         <p className="text-sm font-semibold text-shop_dark_green">
                           {formatPrice(order.grandTotal)}
                         </p>
@@ -195,9 +201,11 @@ const AdminNotifications = ({
                       <p className="mt-0.5 text-[11px] capitalize text-shop_orange">
                         {order.kind === "rx_request"
                           ? "Build order"
-                          : order.needsRxReview
-                            ? "Rx pending"
-                            : order.status.replaceAll("_", " ")}
+                          : order.kind === "password_reset"
+                            ? "Verify details"
+                            : order.needsRxReview
+                              ? "Rx pending"
+                              : order.status.replaceAll("_", " ")}
                       </p>
                     </div>
                   </Link>
@@ -207,7 +215,7 @@ const AdminNotifications = ({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-1 border-t border-black/6 p-2">
+        <div className="grid grid-cols-3 gap-1 border-t border-black/6 p-2">
           <Link
             href="/admin/orders"
             className="flex items-center justify-center rounded-xl px-2 py-2.5 text-xs font-semibold text-shop_dark_green hover:bg-shop_light_green/10"
@@ -219,6 +227,12 @@ const AdminNotifications = ({
             className="flex items-center justify-center rounded-xl px-2 py-2.5 text-xs font-semibold text-shop_orange hover:bg-shop_orange/10"
           >
             Order by Rx
+          </Link>
+          <Link
+            href="/admin/password-resets"
+            className="flex items-center justify-center rounded-xl px-2 py-2.5 text-xs font-semibold text-shop_dark_green hover:bg-shop_light_green/10"
+          >
+            Passwords
           </Link>
         </div>
       </PopoverContent>

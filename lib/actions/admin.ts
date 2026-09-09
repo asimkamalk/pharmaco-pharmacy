@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin";
 import { firstZodMessage, redirectWithFlash } from "@/lib/admin-flash";
@@ -472,6 +473,94 @@ export async function updateCustomer(formData: FormData) {
 
   revalidatePath("/admin/customers");
   revalidatePath(`/admin/customers/${id}`);
+  revalidatePath("/admin");
+  redirectWithFlash(back, { saved: true });
+}
+
+export async function resetCustomerPassword(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  const back = id ? `/admin/customers/${id}` : "/admin/customers";
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (!id) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+  if (password.length < 8) {
+    redirectWithFlash(back, {
+      error: "Password must be at least 8 characters",
+    });
+  }
+  if (password.length > 100) {
+    redirectWithFlash(back, { error: "Password is too long" });
+  }
+  if (password !== confirmPassword) {
+    redirectWithFlash(back, { error: "Passwords do not match" });
+  }
+
+  const existing = await prisma.user.findFirst({
+    where: { id, role: "USER" },
+    select: { id: true },
+  });
+  if (!existing) {
+    redirectWithFlash("/admin/customers", { error: "Customer not found" });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(password, 12);
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+    });
+    await prisma.passwordResetRequest.updateMany({
+      where: { userId: id, status: "pending" },
+      data: { status: "resolved", resolvedAt: new Date() },
+    });
+  } catch {
+    redirectWithFlash(back, { error: "Could not reset password" });
+  }
+
+  revalidatePath("/admin/customers");
+  revalidatePath(`/admin/customers/${id}`);
+  revalidatePath("/admin/password-resets");
+  redirectWithFlash(back, { saved: "password" });
+}
+
+export async function resolvePasswordResetRequest(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "resolved").trim();
+  const back = "/admin/password-resets";
+
+  if (!id) {
+    redirectWithFlash(back, { error: "Request not found" });
+  }
+  if (status !== "resolved" && status !== "cancelled") {
+    redirectWithFlash(back, { error: "Invalid status" });
+  }
+
+  const existing = await prisma.passwordResetRequest.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existing) {
+    redirectWithFlash(back, { error: "Request not found" });
+  }
+
+  try {
+    await prisma.passwordResetRequest.update({
+      where: { id },
+      data: {
+        status,
+        resolvedAt: new Date(),
+      },
+    });
+  } catch {
+    redirectWithFlash(back, { error: "Could not update request" });
+  }
+
+  revalidatePath(back);
   revalidatePath("/admin");
   redirectWithFlash(back, { saved: true });
 }

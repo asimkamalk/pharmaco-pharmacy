@@ -145,12 +145,20 @@ const SignInForm = ({ googleEnabled, facebookEnabled }: SignInFormProps) => {
           />
         </div>
         <div>
-          <label
-            htmlFor="password"
-            className="mb-1.5 block text-sm font-medium text-darkColor"
-          >
-            Password
-          </label>
+          <div className="mb-1.5 flex items-center justify-between gap-3">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-darkColor"
+            >
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-semibold text-shop_light_green hover:text-shop_dark_green"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
             id="password"
             name="password"

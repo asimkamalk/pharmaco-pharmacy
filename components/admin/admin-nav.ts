@@ -4,6 +4,7 @@ import {
   FileText,
   Home,
   ImageIcon,
+  KeyRound,
   LayoutDashboard,
   MapPinned,
   Package,
@@ -48,6 +49,11 @@ export const adminNavGroups: AdminNavGroup[] = [
         icon: ClipboardList,
       },
       { href: "/admin/customers", label: "Customers", icon: Users },
+      {
+        href: "/admin/password-resets",
+        label: "Password resets",
+        icon: KeyRound,
+      },
     ],
   },
   {

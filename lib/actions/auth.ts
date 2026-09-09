@@ -80,3 +80,74 @@ export async function registerUser(
 
   return { success: true, email };
 }
+
+const passwordResetSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email"),
+  username: z
+    .string()
+    .trim()
+    .min(3, "Please enter your username")
+    .max(30, "Username is too long"),
+});
+
+export type PasswordResetActionState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  success?: boolean;
+};
+
+export async function requestPasswordReset(
+  _prev: PasswordResetActionState,
+  formData: FormData,
+): Promise<PasswordResetActionState> {
+  const raw = {
+    email: String(formData.get("email") ?? ""),
+    username: String(formData.get("username") ?? ""),
+  };
+
+  const parsed = passwordResetSchema.safeParse(raw);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = String(issue.path[0] ?? "form");
+      if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { fieldErrors };
+  }
+
+  const email = parsed.data.email.toLowerCase();
+  const username = parsed.data.username.toLowerCase();
+
+  const recent = await prisma.passwordResetRequest.findFirst({
+    where: {
+      status: "pending",
+      email,
+      username,
+      createdAt: { gte: new Date(Date.now() - 15 * 60_000) },
+    },
+    select: { id: true },
+  });
+  if (recent) {
+    return { success: true };
+  }
+
+  const matched = await prisma.user.findFirst({
+    where: {
+      role: "USER",
+      email,
+      username,
+    },
+    select: { id: true },
+  });
+
+  await prisma.passwordResetRequest.create({
+    data: {
+      email,
+      username,
+      userId: matched?.id ?? null,
+      status: "pending",
+    },
+  });
+
+  return { success: true };
+}

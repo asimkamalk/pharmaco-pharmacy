@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import AdminFlash from "@/components/admin/AdminFlash";
 import CustomerForm from "@/components/admin/CustomerForm";
 import DeleteCustomerButton from "@/components/admin/DeleteCustomerButton";
+import ResetCustomerPasswordForm from "@/components/admin/ResetCustomerPasswordForm";
 import RestrictCustomerButton from "@/components/admin/RestrictCustomerButton";
 import { getAdminCustomerById } from "@/lib/customers";
 import { formatPkDateTime } from "@/lib/datetime";
@@ -26,6 +27,10 @@ const AdminCustomerDetailPage = async ({ params, searchParams }: PageProps) => {
     0,
   );
   const displayName = customer.name || "Unnamed";
+  const savedMessage =
+    saved === "password"
+      ? "Password reset. Share the new password with the customer."
+      : "Customer updated.";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -62,11 +67,7 @@ const AdminCustomerDetailPage = async ({ params, searchParams }: PageProps) => {
         </div>
       </div>
 
-      <AdminFlash
-        saved={saved}
-        error={error}
-        savedMessage="Customer updated."
-      />
+      <AdminFlash saved={saved} error={error} savedMessage={savedMessage} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
@@ -109,6 +110,16 @@ const AdminCustomerDetailPage = async ({ params, searchParams }: PageProps) => {
         </section>
 
         <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+          <h2 className="mb-4 font-semibold text-darkColor">Reset password</h2>
+          <ResetCustomerPasswordForm
+            customerId={customer.id}
+            customerName={displayName}
+          />
+        </section>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
           <h2 className="mb-4 font-semibold text-darkColor">Saved addresses</h2>
           {customer.addresses.length === 0 ? (
             <p className="text-sm text-lightColor">No saved addresses.</p>
@@ -138,47 +149,47 @@ const AdminCustomerDetailPage = async ({ params, searchParams }: PageProps) => {
             </ul>
           )}
         </section>
-      </div>
 
-      <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="font-semibold text-darkColor">Recent orders</h2>
-          <Link
-            href="/admin/orders"
-            className="text-sm font-medium text-shop_light_green hover:text-shop_dark_green"
-          >
-            All orders
-          </Link>
-        </div>
-        {customer.orders.length === 0 ? (
-          <p className="py-4 text-sm text-lightColor">No orders yet.</p>
-        ) : (
-          <ul className="divide-y divide-black/5">
-            {customer.orders.map((order) => (
-              <li
-                key={order.id}
-                className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
-              >
-                <div>
-                  <Link
-                    href={`/admin/orders/${order.id}`}
-                    className="font-semibold text-darkColor hover:text-shop_dark_green"
-                  >
-                    {order.orderNumber}
-                  </Link>
-                  <p className="text-xs capitalize text-lightColor">
-                    {order.status.replaceAll("_", " ")} ·{" "}
-                    {formatPkDateTime(order.createdAt)}
+        <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-darkColor">Recent orders</h2>
+            <Link
+              href="/admin/orders"
+              className="text-sm font-medium text-shop_light_green hover:text-shop_dark_green"
+            >
+              All orders
+            </Link>
+          </div>
+          {customer.orders.length === 0 ? (
+            <p className="py-4 text-sm text-lightColor">No orders yet.</p>
+          ) : (
+            <ul className="divide-y divide-black/5">
+              {customer.orders.map((order) => (
+                <li
+                  key={order.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+                >
+                  <div>
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className="font-semibold text-darkColor hover:text-shop_dark_green"
+                    >
+                      {order.orderNumber}
+                    </Link>
+                    <p className="text-xs capitalize text-lightColor">
+                      {order.status.replaceAll("_", " ")} ·{" "}
+                      {formatPkDateTime(order.createdAt)}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-shop_dark_green">
+                    {formatPrice(order.grandTotal)}
                   </p>
-                </div>
-                <p className="font-semibold text-shop_dark_green">
-                  {formatPrice(order.grandTotal)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

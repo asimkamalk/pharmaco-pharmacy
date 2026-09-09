@@ -146,9 +146,9 @@ async function main() {
   }
 
   const adminEmail = (
-    process.env.ADMIN_EMAIL || "admin@pharmaco.local"
+    process.env.ADMIN_EMAIL || "pharmacopharmacy24@gmail.com"
   ).toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || "Admin@12345";
+  const adminPassword = process.env.ADMIN_PASSWORD || "Tryhard123";
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
   await prisma.user.upsert({
@@ -158,6 +158,7 @@ async function main() {
       passwordHash,
       name: "Pharmaco Admin",
       username: "admin",
+      isRestricted: false,
     },
     create: {
       email: adminEmail,
@@ -167,6 +168,13 @@ async function main() {
       passwordHash,
     },
   });
+
+  // Remove legacy local admin if it still exists and is different
+  if (adminEmail !== "admin@pharmaco.local") {
+    await prisma.user.deleteMany({
+      where: { email: "admin@pharmaco.local", role: "ADMIN" },
+    });
+  }
 
   const { defaultSiteConfig } = await import("../constants/site");
   const d = defaultSiteConfig;
