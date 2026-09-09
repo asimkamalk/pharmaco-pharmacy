@@ -320,18 +320,9 @@ const ProductPurchaseControls = ({
   /* —— Card —— */
   return (
     <div className={cn("space-y-2.5", className)}>
-      {(stripHint || boxPrice || stripPrice) && (
-        <div className="space-y-0.5">
-          {stripHint ? (
-            <p className="text-[11px] leading-snug text-lightColor">
-              {stripHint}
-            </p>
-          ) : null}
-          <p className="text-[11px] leading-snug text-lightColor">
-            Box {formatPrice(boxPrice)} · Strip {formatPrice(stripPrice)}
-          </p>
-        </div>
-      )}
+      {stripHint ? (
+        <p className="text-[11px] leading-snug text-lightColor">{stripHint}</p>
+      ) : null}
 
       {(boxQty > 0 || stripQty > 0) && (
         <div className="space-y-1.5">

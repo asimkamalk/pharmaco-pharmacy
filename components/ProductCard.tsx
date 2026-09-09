@@ -3,6 +3,7 @@ import Link from "next/link";
 import AddToWishlistButton from "./AddToWishlistButton";
 import PriceView from "./PriceView";
 import ProductPurchaseControls from "./ProductPurchaseControls";
+import { listPriceForPack } from "@/lib/pack";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -12,6 +13,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const categoryTitle = product.categoryTitle;
   const outOfStock = product.stock <= 0;
+  const showStripPrice = Boolean(product.sellByStrip);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-black/10 bg-white transition-shadow duration-300 hover:shadow-md">
@@ -76,11 +78,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </h3>
 
         <div className="mt-auto space-y-2.5 pt-2">
-          <PriceView
-            price={product.price}
-            discount={product.discount}
-            unitSuffix={product.sellByStrip ? "/ box" : undefined}
-          />
+          <div className="space-y-0.5">
+            <PriceView
+              price={product.price}
+              discount={product.discount}
+              unitSuffix={product.sellByStrip ? "/ box" : undefined}
+            />
+            {showStripPrice ? (
+              <PriceView
+                price={listPriceForPack(product, "strip")}
+                discount={product.discount}
+                unitSuffix="/ strip"
+              />
+            ) : null}
+          </div>
           <ProductPurchaseControls product={product} layout="card" />
         </div>
       </div>
