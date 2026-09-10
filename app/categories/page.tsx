@@ -39,14 +39,20 @@ const CategoriesPage = async () => {
                 className="group flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-white p-4 transition-all duration-300 hover:border-shop_light_green/50 hover:shadow-md sm:p-5"
               >
                 <div className="flex min-w-0 items-center gap-4">
-                  <span className="flex h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-black/5 bg-shop_light_pink">
-                    <Image
-                      src={category.image}
-                      alt=""
-                      width={64}
-                      height={64}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                  <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-shop_mist to-white ring-1 ring-shop_dark_green/10">
+                    {category.image.includes("placeholder") ? (
+                      <span className="font-heading text-2xl font-semibold text-shop_dark_green">
+                        {category.title.trim().charAt(0).toUpperCase()}
+                      </span>
+                    ) : (
+                      <Image
+                        src={category.image}
+                        alt=""
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    )}
                   </span>
                   <div className="min-w-0">
                     <h2 className="font-semibold text-darkColor transition-colors duration-200 group-hover:text-shop_dark_green">

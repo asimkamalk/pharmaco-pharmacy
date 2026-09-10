@@ -16,8 +16,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const showStripPrice = Boolean(product.sellByStrip);
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-black/10 bg-white transition-shadow duration-300 hover:shadow-md">
-      <div className="relative overflow-hidden bg-shop_light_bg">
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-shop_dark_green/10 transition duration-300 hover:-translate-y-0.5 hover:ring-shop_light_green/35">
+      <div className="relative overflow-hidden bg-gradient-to-b from-shop_mist/80 to-shop_light_bg">
         <Link
           href={`/product/${product.slug}`}
           aria-label={`View ${product.name}`}
@@ -28,7 +28,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             width={400}
             height={400}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className={`aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+            className={`aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] ${
               outOfStock ? "opacity-60" : ""
             }`}
           />
@@ -42,7 +42,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
           {product.requiresPrescription && (
             <span className="rounded-md bg-shop_dark_green px-2 py-0.5 text-xs font-semibold text-white">
-              Prescription Required
+              Rx
             </span>
           )}
           {outOfStock && (
@@ -62,7 +62,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {categoryTitle && (
           <Link
             href={`/shop?category=${product.categorySlug}`}
-            className="text-[11px] font-medium uppercase tracking-wide text-shop_light_green transition-colors duration-200 hover:text-shop_dark_green"
+            className="text-[11px] font-medium uppercase tracking-[0.12em] text-shop_light_green transition-colors duration-200 hover:text-shop_dark_green"
           >
             {categoryTitle}
           </Link>

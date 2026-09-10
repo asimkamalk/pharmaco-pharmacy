@@ -154,13 +154,22 @@ const SearchBar = () => {
                     }
                     className="gap-3"
                   >
-                    <Image
-                      src={category.image}
-                      alt={category.title}
-                      width={28}
-                      height={28}
-                      className="h-7 w-7 rounded object-cover"
-                    />
+                    {category.image.includes("placeholder") ? (
+                      <span
+                        aria-hidden
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded bg-shop_light_bg text-[11px] font-semibold text-shop_dark_green"
+                      >
+                        {category.title.trim().charAt(0).toUpperCase()}
+                      </span>
+                    ) : (
+                      <Image
+                        src={category.image}
+                        alt={category.title}
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 rounded object-cover"
+                      />
+                    )}
                     {category.title}
                   </CommandItem>
                 ))}

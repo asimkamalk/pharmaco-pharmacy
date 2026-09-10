@@ -43,6 +43,16 @@ export async function getBrands(): Promise<Brand[]> {
   return rows.map(mapBrand);
 }
 
+/** Brands with the most products — better for homepage “Shop by Brand”. */
+export async function getFeaturedBrands(limit = 14): Promise<Brand[]> {
+  const rows = await prisma.brand.findMany({
+    where: { isActive: true },
+    orderBy: [{ products: { _count: "desc" } }, { title: "asc" }],
+    take: Math.max(1, limit),
+  });
+  return rows.map(mapBrand);
+}
+
 export async function getBrandBySlug(
   slug: string,
 ): Promise<Brand | undefined> {

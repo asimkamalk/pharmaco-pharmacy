@@ -77,13 +77,14 @@ const ShopPage = async ({ searchParams }: ShopPageProps) => {
       "Medicines, wellness and healthcare essentials");
 
   return (
-    <main className="bg-white">
+    <main className="store-surface-soft">
       <Container className="py-8 sm:py-10">
         <header>
-          <h1 className="text-2xl font-bold text-darkColor sm:text-3xl">
+          <p className="store-kicker">Catalog</p>
+          <h1 className="store-heading mt-2 text-3xl sm:text-4xl">
             {heading}
           </h1>
-          <p className="mt-1.5 text-sm text-lightColor">
+          <p className="mt-2 text-sm text-lightColor sm:text-[15px]">
             {query ? (
               <>
                 Search results for{" "}
@@ -101,12 +102,12 @@ const ShopPage = async ({ searchParams }: ShopPageProps) => {
           </p>
         </header>
 
-        <div className="mt-6 flex gap-8">
+        <div className="mt-8 flex gap-8">
           <aside
             aria-label="Product filters"
             className="hidden w-64 shrink-0 overflow-hidden lg:block"
           >
-            <div className="sticky top-6 max-h-[calc(100vh-4rem)] overflow-x-hidden overflow-y-auto rounded-xl border border-black/10 bg-white p-5">
+            <div className="sticky top-6 max-h-[calc(100vh-4rem)] overflow-x-hidden overflow-y-auto rounded-2xl bg-white/85 p-5 ring-1 ring-shop_dark_green/10 backdrop-blur-sm">
               <ShopFilters categories={categories} brands={brands} />
             </div>
           </aside>

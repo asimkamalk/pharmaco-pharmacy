@@ -125,7 +125,7 @@ const HomeHero = ({ slides }: HomeHeroProps) => {
                         {slide.eyebrow}
                       </p>
                     )}
-                    <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                    <h1 className="font-heading text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
                       {slide.headline}
                     </h1>
                     {slide.subcopy && (

@@ -15,7 +15,7 @@ const Header = async () => {
   const isLoggedIn = Boolean(session?.user);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-shop_dark_green/10 bg-white/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-shop_dark_green/8 bg-white/85 backdrop-blur-xl">
       <Container className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 sm:gap-4 sm:py-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <MobileMenu />

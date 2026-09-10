@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Fraunces, Poppins } from "next/font/google";
 
 import "./globals.css";
 import AuthSessionProvider from "@/components/AuthSessionProvider";
@@ -23,6 +23,13 @@ const poppins = Poppins({
   display: "swap",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteConfig();
   return buildRootMetadata(site);
@@ -36,7 +43,7 @@ export default async function RootLayout({
   const [session, site] = await Promise.all([auth(), getSiteConfig()]);
 
   return (
-    <html lang="en" className={poppins.variable}>
+    <html lang="en" className={`${poppins.variable} ${fraunces.variable}`}>
       <body className="font-poppins antialiased">
         <JsonLd
           data={[buildLocalBusinessJsonLd(site), buildWebsiteJsonLd(site)]}
