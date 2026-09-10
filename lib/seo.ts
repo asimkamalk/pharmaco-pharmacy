@@ -211,6 +211,9 @@ export function buildRootMetadata(site: SiteConfig): Metadata {
         },
       ],
     },
+    other: {
+      "msapplication-TileColor": "#000000",
+    },
     keywords: [
       "pharmacy",
       "Pharmaco Pharmacy",
