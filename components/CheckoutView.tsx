@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import {
   Banknote,
   Building2,
@@ -79,6 +80,7 @@ const CheckoutView = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
   );
+  const [openAddressFormSignal, setOpenAddressFormSignal] = useState(0);
   const [draftLocation, setDraftLocation] = useState<{
     city: string;
     area: string;
@@ -136,6 +138,19 @@ const CheckoutView = () => {
   );
   const grandTotal = subtotal + deliveryFee;
 
+  const focusDeliveryAddresses = () => {
+    if (addresses.length === 0) {
+      setOpenAddressFormSignal((n) => n + 1);
+    }
+    // Wait a tick so the form can open before scrolling (esp. on mobile)
+    requestAnimationFrame(() => {
+      document.getElementById("delivery-addresses")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  };
+
   const handlePlaceOrder = async () => {
     const parsed = checkoutFormSchema.safeParse({
       addressId: activeAddressId,
@@ -154,11 +169,15 @@ const CheckoutView = () => {
         if (!next[key]) next[key] = issue.message;
       }
       setErrors(next);
+      if (next.addressId || !selectedAddress) {
+        focusDeliveryAddresses();
+      }
       return;
     }
 
     if (!selectedAddress) {
       setErrors({ addressId: "Please select a delivery address" });
+      focusDeliveryAddresses();
       return;
     }
 
@@ -246,9 +265,12 @@ const CheckoutView = () => {
               selectedId={activeAddressId}
               onSelect={setSelectedAddressId}
               onDraftLocationChange={setDraftLocation}
+              openCreateSignal={openAddressFormSignal}
             />
             {errors.addressId && (
-              <p className="mt-3 text-xs text-shop_orange">{errors.addressId}</p>
+              <p className="mt-3 text-xs text-shop_orange" role="alert">
+                {errors.addressId}
+              </p>
             )}
           </section>
 

@@ -43,6 +43,8 @@ interface AddressManagerProps {
   onDraftLocationChange?: (
     draft: { city: string; area: string; phase?: string } | null,
   ) => void;
+  /** Increment to open the add-address form (e.g. after Place Order with no address) */
+  openCreateSignal?: number;
   className?: string;
 }
 
@@ -87,6 +89,7 @@ const AddressManager = ({
   selectedId,
   onSelect,
   onDraftLocationChange,
+  openCreateSignal = 0,
   className,
 }: AddressManagerProps) => {
   const siteConfig = useSiteConfig();
@@ -103,6 +106,14 @@ const AddressManager = ({
     emptyForm(siteConfig.location.area, siteConfig.location.city),
   );
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  useEffect(() => {
+    if (!openCreateSignal) return;
+    setEditingId(null);
+    setForm(emptyForm(siteConfig.location.area, siteConfig.location.city));
+    setErrors({});
+    setIsFormOpen(true);
+  }, [openCreateSignal, siteConfig.location.area, siteConfig.location.city]);
 
   useEffect(() => {
     if (!isFormOpen || !form.region) {
@@ -295,7 +306,7 @@ const AddressManager = ({
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div id="delivery-addresses" className={cn("scroll-mt-24 space-y-4", className)}>
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-darkColor">
           Delivery Addresses

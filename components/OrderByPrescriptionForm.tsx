@@ -57,6 +57,7 @@ const OrderByPrescriptionForm = ({
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
   );
+  const [openAddressFormSignal, setOpenAddressFormSignal] = useState(0);
 
   const defaultAddressId = isHydrated
     ? (getDefault()?.id ?? addresses[0]?.id ?? "")
@@ -66,6 +67,18 @@ const OrderByPrescriptionForm = ({
     () => addresses.find((address) => address.id === activeAddressId),
     [addresses, activeAddressId],
   );
+
+  const focusDeliveryAddresses = () => {
+    if (addresses.length === 0) {
+      setOpenAddressFormSignal((n) => n + 1);
+    }
+    requestAnimationFrame(() => {
+      document.getElementById("delivery-addresses")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  };
 
   const handleFile = async (file: File | null | undefined) => {
     if (!file) return;
@@ -108,6 +121,7 @@ const OrderByPrescriptionForm = ({
     }
     if (!selectedAddress) {
       setError("Please select or add a delivery address");
+      focusDeliveryAddresses();
       return;
     }
 
@@ -307,7 +321,10 @@ const OrderByPrescriptionForm = ({
         />
       </section>
 
-      <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:p-6">
+      <section
+        id="prescription-delivery-addresses"
+        className="scroll-mt-24 rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:p-6"
+      >
         <h2 className="text-base font-semibold text-darkColor">
           3. Delivery address
         </h2>
@@ -323,6 +340,7 @@ const OrderByPrescriptionForm = ({
               selectable
               selectedId={activeAddressId}
               onSelect={setSelectedAddressId}
+              openCreateSignal={openAddressFormSignal}
             />
           )}
         </div>
