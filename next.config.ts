@@ -36,6 +36,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "dvago-assets.s3.ap-southeast-1.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "www.dvago.pk",
+      },
+      {
+        protocol: "https",
+        hostname: "dvago.pk",
+      },
     ],
   },
 };
