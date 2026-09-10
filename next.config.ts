@@ -32,6 +32,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.blob.vercel-storage.com",
       },
+      {
+        protocol: "https",
+        hostname: "dvago-assets.s3.ap-southeast-1.amazonaws.com",
+      },
     ],
   },
 };
