@@ -139,6 +139,12 @@ export async function saveProduct(formData: FormData) {
     });
   }
 
+  // Prefer URL already uploaded via /api/blob/upload (ImageUploadField)
+  const uploadedUrl = String(formData.get("imageUrl") ?? "").trim();
+  if (uploadedUrl && !uploadedUrl.includes("placeholder")) {
+    imageUrl = uploadedUrl;
+  }
+
   if (!imageUrl || imageUrl.includes("placeholder")) {
     redirectWithFlash(back, {
       error: "Please upload a product image",

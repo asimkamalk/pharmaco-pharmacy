@@ -52,10 +52,10 @@ const AdminHeroPage = async ({ searchParams }: PageProps) => {
         <form action={saveHeroSlide} className="space-y-4">
           {editing && <input type="hidden" name="id" value={editing.id} />}
           <ImageUploadField
-            name="background"
             urlFieldName="backgroundUrl"
             existingUrl={editing?.backgroundUrl ?? ""}
             label="Background image (required)"
+            folder="site"
             required
             requiredMessage="Please upload a background image for this slide"
           />

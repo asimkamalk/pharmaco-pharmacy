@@ -189,6 +189,8 @@ const ProductForm = ({ categories, brands, product }: ProductFormProps) => {
           existingUrl={
             product?.imageUrl || "/images/products/placeholder.svg"
           }
+          folder="products"
+          required={!product}
         />
 
         <label className="block space-y-1.5 md:col-span-2">

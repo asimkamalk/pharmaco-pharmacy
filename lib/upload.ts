@@ -15,7 +15,7 @@ const PRESCRIPTION_TYPES: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4.5 * 1024 * 1024;
 
 /** Prefer Blob over File — FormData entries can fail `instanceof File` in Node. */
 export function getFormFile(formData: FormData, key: string): File | null {
@@ -43,8 +43,6 @@ async function saveToBlob(
   const result = await put(pathname, buffer, {
     access: "public",
     contentType,
-    addRandomSuffix: false,
-    token: process.env.BLOB_READ_WRITE_TOKEN,
   });
   return result.url;
 }
@@ -90,7 +88,7 @@ export async function saveUploadedImage(
     throw new Error("Only JPG, PNG, WebP or GIF images are allowed");
   }
   if (file.size <= 0 || file.size > MAX_BYTES) {
-    throw new Error("Image must be under 5MB");
+    throw new Error("Image must be under 4.5MB");
   }
 
   const filename = `${Date.now()}-${randomUUID().slice(0, 8)}.${extension}`;
@@ -117,7 +115,7 @@ export async function saveUploadedPrescription(
     throw new Error("Upload a JPG, PNG, WebP, or PDF prescription (max 5MB)");
   }
   if (file.size <= 0 || file.size > MAX_BYTES) {
-    throw new Error("Prescription file must be under 5MB");
+    throw new Error("Prescription file must be under 4.5MB");
   }
 
   const originalName =

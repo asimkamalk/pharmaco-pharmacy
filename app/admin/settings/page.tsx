@@ -81,11 +81,11 @@ const AdminSettingsPage = async ({ searchParams }: PageProps) => {
             </label>
           </div>
           <ImageUploadField
-            name="logo"
             existingUrl={site.branding.logoUrl}
             label="Logo"
+            urlFieldName="logoUrl"
+            folder="site"
           />
-          <input type="hidden" name="logoUrl" value={site.branding.logoUrl} />
         </section>
 
         <section className="space-y-3">
