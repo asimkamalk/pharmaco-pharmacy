@@ -14,12 +14,14 @@ import Container from "@/components/Container";
 import GoogleMap from "@/components/GoogleMap";
 import HomeHero from "@/components/HomeHero";
 import ProductCard from "@/components/ProductCard";
+import ProductCarousel from "@/components/ProductCarousel";
 import Reveal from "@/components/Reveal";
 import {
   getBestSellers,
   getCategories,
   getFeaturedBrands,
   getFeaturedProducts,
+  getRecentlyAddedProducts,
 } from "@/lib/products";
 import { getHeroSlides } from "@/lib/hero";
 import { getSiteConfig } from "@/lib/site";
@@ -72,12 +74,13 @@ function SectionHeader({
 }
 
 const Home = async () => {
-  const [categories, brands, featuredProducts, bestSellers, siteConfig, heroSlides] =
+  const [categories, brands, featuredProducts, bestSellers, recentlyAdded, siteConfig, heroSlides] =
     await Promise.all([
       getCategories(),
       getFeaturedBrands(12),
       getFeaturedProducts(8),
-      getBestSellers(4),
+      getBestSellers(20),
+      getRecentlyAddedProducts(20),
       getSiteConfig(),
       getHeroSlides(),
     ]);
@@ -298,20 +301,30 @@ const Home = async () => {
             <SectionHeader
               id="best-sellers"
               title="Best sellers"
-              subtitle="Customer favourites, restocked regularly."
+              subtitle="Most ordered products from real customer purchases."
+              href="/shop"
             />
           </Reveal>
-          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
-            {bestSellers.map((product, index) => (
-              <Reveal
-                key={product.id}
-                className="h-full"
-                delayMs={Math.min(index, 3) * 70}
-              >
-                <ProductCard product={product} />
-              </Reveal>
-            ))}
-          </div>
+          <Reveal>
+            <ProductCarousel products={bestSellers} />
+          </Reveal>
+        </Container>
+      </section>
+
+      {/* Recently added */}
+      <section aria-labelledby="recently-added">
+        <Container className="py-14 sm:py-16">
+          <Reveal>
+            <SectionHeader
+              id="recently-added"
+              title="Recently added"
+              subtitle="Fresh arrivals just added to the Pharmaco catalog."
+              href="/shop?sort=newest"
+            />
+          </Reveal>
+          <Reveal>
+            <ProductCarousel products={recentlyAdded} />
+          </Reveal>
         </Container>
       </section>
 

@@ -93,11 +93,58 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
   return rows.map((row) => mapProduct(row));
 }
 
-export async function getBestSellers(limit = 8): Promise<Product[]> {
+/** Rank products by units sold (excludes cancelled orders). Fills with recent if needed. */
+export async function getBestSellers(limit = 20): Promise<Product[]> {
+  const sold = await prisma.orderItem.groupBy({
+    by: ["productId"],
+    where: {
+      productId: { not: null },
+      order: { status: { not: "cancelled" } },
+    },
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "desc" } },
+    take: limit,
+  });
+
+  const rankedIds = sold
+    .map((row) => row.productId)
+    .filter((id): id is string => Boolean(id));
+
+  const products: Product[] = [];
+
+  if (rankedIds.length > 0) {
+    const rows = await prisma.product.findMany({
+      where: { id: { in: rankedIds }, isArchived: false },
+      include: productInclude,
+    });
+    const byId = Object.fromEntries(rows.map((row) => [row.id, mapProduct(row)]));
+    for (const id of rankedIds) {
+      const product = byId[id];
+      if (product) products.push(product);
+    }
+  }
+
+  if (products.length >= limit) return products.slice(0, limit);
+
+  const fillers = await prisma.product.findMany({
+    where: {
+      isArchived: false,
+      id: { notIn: products.map((p) => p.id) },
+    },
+    include: productInclude,
+    orderBy: { createdAt: "desc" },
+    take: limit - products.length,
+  });
+
+  return [...products, ...fillers.map((row) => mapProduct(row))];
+}
+
+/** Newest catalog products by createdAt. */
+export async function getRecentlyAddedProducts(limit = 20): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     where: { isArchived: false },
     include: productInclude,
-    orderBy: { updatedAt: "desc" },
+    orderBy: { createdAt: "desc" },
     take: limit,
   });
   return rows.map((row) => mapProduct(row));
