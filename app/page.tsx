@@ -10,6 +10,7 @@ import {
   Stethoscope,
   Truck,
 } from "lucide-react";
+import BrandLogoStrip from "@/components/BrandLogoStrip";
 import Container from "@/components/Container";
 import GoogleMap from "@/components/GoogleMap";
 import HomeHero from "@/components/HomeHero";
@@ -18,8 +19,8 @@ import ProductCarousel from "@/components/ProductCarousel";
 import Reveal from "@/components/Reveal";
 import {
   getBestSellers,
+  getBrands,
   getCategories,
-  getFeaturedBrands,
   getFeaturedProducts,
   getRecentlyAddedProducts,
 } from "@/lib/products";
@@ -77,7 +78,7 @@ const Home = async () => {
   const [categories, brands, featuredProducts, bestSellers, recentlyAdded, siteConfig, heroSlides] =
     await Promise.all([
       getCategories(),
-      getFeaturedBrands(12),
+      getBrands(),
       getFeaturedProducts(8),
       getBestSellers(20),
       getRecentlyAddedProducts(20),
@@ -130,50 +131,6 @@ const Home = async () => {
                   </span>
                   <span className="mt-3 line-clamp-2 text-xs font-medium leading-snug text-darkColor sm:text-sm">
                     {category.title}
-                  </span>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* Shop by brand */}
-      <section aria-labelledby="shop-brands" className="store-mesh">
-        <Container className="py-14 sm:py-16">
-          <Reveal>
-            <SectionHeader
-              id="shop-brands"
-              title="Trusted brands"
-              subtitle="Leading pharmaceutical names stocked for your family."
-              href="/shop"
-            />
-          </Reveal>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {brands.map((brand, index) => (
-              <Reveal key={brand.id} delayMs={Math.min(index, 6) * 45}>
-                <Link
-                  href={`/shop?brand=${brand.slug}`}
-                  className="group flex flex-col items-center rounded-2xl bg-white/70 px-3 py-4 text-center ring-1 ring-shop_dark_green/8 transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:ring-shop_light_green/35"
-                >
-                  <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-shop_mist to-white ring-1 ring-shop_dark_green/10 sm:h-16 sm:w-16">
-                    {brand.image.includes("placeholder") ? (
-                      <span className="font-heading text-xl font-semibold text-shop_dark_green sm:text-2xl">
-                        {brand.title.trim().charAt(0).toUpperCase()}
-                      </span>
-                    ) : (
-                      <Image
-                        src={brand.image}
-                        alt=""
-                        width={64}
-                        height={64}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    )}
-                  </span>
-                  <span className="mt-3 line-clamp-2 text-xs font-medium leading-snug text-darkColor sm:text-sm">
-                    {brand.title}
                   </span>
                 </Link>
               </Reveal>
@@ -391,6 +348,23 @@ const Home = async () => {
               </Reveal>
             ))}
           </div>
+        </Container>
+      </section>
+
+      {/* Brand logos strip */}
+      <section aria-labelledby="brand-logos" className="border-y border-shop_dark_green/8 bg-white">
+        <Container className="py-10 sm:py-12">
+          <Reveal>
+            <div className="mb-6 text-center">
+              <p className="store-kicker">Partners</p>
+              <h2 id="brand-logos" className="store-heading mt-2 text-xl sm:text-2xl">
+                Brands we stock
+              </h2>
+            </div>
+          </Reveal>
+          <Reveal>
+            <BrandLogoStrip brands={brands} />
+          </Reveal>
         </Container>
       </section>
 
