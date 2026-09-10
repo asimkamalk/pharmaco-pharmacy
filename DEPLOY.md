@@ -39,6 +39,7 @@ Admin login after seed:
 | `NEXT_PUBLIC_SITE_URL` | same as `AUTH_URL` (or custom domain) |
 | `ADMIN_EMAIL` | `pharmacopharmacy24@gmail.com` |
 | `ADMIN_PASSWORD` | `Tryhard123` |
+| `BLOB_READ_WRITE_TOKEN` | from Vercel → Storage → Blob |
 
 4. Deploy. The build runs `prisma generate && prisma db push && next build`.
 5. After first deploy, run seed once against Neon (from your machine with Neon URLs in `.env`):
@@ -54,4 +55,4 @@ Vercel → Project → Settings → Domains → add `pharmaco.pk` (or your domai
 ## Notes
 
 - Local SQLite (`file:./dev.db`) is no longer used — Neon Postgres is required.
-- Uploaded files are stored on disk locally. On Vercel the filesystem is ephemeral, so later add **Vercel Blob** if you need persistent prescription/product image uploads in production.
+- On Vercel, uploads use **Vercel Blob** (`BLOB_READ_WRITE_TOKEN`). Locally, files still save under `public/uploads` when that token is unset.

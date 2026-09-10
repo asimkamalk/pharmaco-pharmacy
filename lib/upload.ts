@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { put } from "@vercel/blob";
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -25,6 +26,60 @@ export function getFormFile(formData: FormData, key: string): File | null {
   return entry as File;
 }
 
+function useVercelBlob() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+function isVercelRuntime() {
+  return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+}
+
+async function saveToBlob(
+  file: Blob,
+  pathname: string,
+  contentType: string,
+): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const result = await put(pathname, buffer, {
+    access: "public",
+    contentType,
+    addRandomSuffix: false,
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  });
+  return result.url;
+}
+
+async function saveToLocalDisk(
+  file: Blob,
+  relativeDir: string,
+  filename: string,
+): Promise<string> {
+  if (isVercelRuntime()) {
+    throw new Error(
+      "File uploads on Vercel require BLOB_READ_WRITE_TOKEN. Add a Blob store in the Vercel project and set that env var.",
+    );
+  }
+
+  const absoluteDir = path.join(process.cwd(), "public", relativeDir);
+  await mkdir(absoluteDir, { recursive: true });
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await writeFile(path.join(absoluteDir, filename), buffer);
+  return `/${relativeDir.replace(/\\/g, "/")}/${filename}`;
+}
+
+async function persistUpload(
+  file: Blob,
+  relativeDir: string,
+  filename: string,
+  contentType: string,
+): Promise<string> {
+  const pathname = `${relativeDir.replace(/\\/g, "/")}/${filename}`;
+  if (useVercelBlob()) {
+    return saveToBlob(file, pathname, contentType);
+  }
+  return saveToLocalDisk(file, relativeDir, filename);
+}
+
 export async function saveUploadedImage(
   file: Blob,
   folder: "products" | "categories" | "brands" | "site" = "products",
@@ -38,15 +93,9 @@ export async function saveUploadedImage(
     throw new Error("Image must be under 5MB");
   }
 
-  const relativeDir = path.join("uploads", folder);
-  const absoluteDir = path.join(process.cwd(), "public", relativeDir);
-  await mkdir(absoluteDir, { recursive: true });
-
   const filename = `${Date.now()}-${randomUUID().slice(0, 8)}.${extension}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(absoluteDir, filename), buffer);
-
-  return `/${relativeDir.replace(/\\/g, "/")}/${filename}`;
+  const relativeDir = path.join("uploads", folder);
+  return persistUpload(file, relativeDir, filename, type);
 }
 
 export async function saveUploadedProductImage(file: File) {
@@ -71,20 +120,16 @@ export async function saveUploadedPrescription(
     throw new Error("Prescription file must be under 5MB");
   }
 
-  const relativeDir = path.join("uploads", "prescriptions");
-  const absoluteDir = path.join(process.cwd(), "public", relativeDir);
-  await mkdir(absoluteDir, { recursive: true });
-
   const originalName =
     "name" in file && typeof file.name === "string" && file.name
       ? file.name.replace(/[^\w.\-()+ ]+/g, "_").slice(0, 80)
       : `prescription.${extension}`;
   const filename = `${Date.now()}-${randomUUID().slice(0, 10)}.${extension}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(absoluteDir, filename), buffer);
+  const relativeDir = path.join("uploads", "prescriptions");
+  const url = await persistUpload(file, relativeDir, filename, type);
 
   return {
-    url: `/${relativeDir.replace(/\\/g, "/")}/${filename}`,
+    url,
     fileName: originalName,
     mimeType: type,
   };
