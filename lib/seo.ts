@@ -195,12 +195,12 @@ export function buildRootMetadata(site: SiteConfig): Metadata {
     applicationName: site.name,
     icons: {
       icon: [
-        { url: "/favicon.ico", sizes: "any" },
         { url: "/favicon.png", type: "image/png", sizes: "48x48" },
         {
           url: "/images/pharmaco-favicon.png",
           type: "image/png",
         },
+        { url: "/favicon.ico", sizes: "any" },
       ],
       shortcut: "/favicon.ico",
       apple: [
@@ -210,9 +210,6 @@ export function buildRootMetadata(site: SiteConfig): Metadata {
           type: "image/png",
         },
       ],
-    },
-    other: {
-      "msapplication-TileColor": "#000000",
     },
     keywords: [
       "pharmacy",
@@ -263,6 +260,7 @@ export function buildRootMetadata(site: SiteConfig): Metadata {
       },
     },
     other: {
+      "msapplication-TileColor": "#000000",
       "geo.region": "PK-KP",
       "geo.placename": `${site.location.area}, ${site.location.city}`,
     },
