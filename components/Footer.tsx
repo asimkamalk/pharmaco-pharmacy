@@ -133,8 +133,7 @@ const Footer = async () => {
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-black/10 py-5 sm:flex-row">
           <p className="text-center text-xs text-lightColor sm:text-left">
-            &copy; {new Date().getFullYear()} {siteConfig.name},{" "}
-            {siteConfig.location.area}, {siteConfig.location.city}. All rights
+            &copy; {new Date().getFullYear()} {siteConfig.name}, All rights
             reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-lightColor">
