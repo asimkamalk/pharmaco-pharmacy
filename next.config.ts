@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "6mb",
     },
   },
+  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
   images: {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy:
