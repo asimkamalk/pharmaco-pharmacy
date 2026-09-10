@@ -193,6 +193,20 @@ export function buildRootMetadata(site: SiteConfig): Metadata {
     },
     description,
     applicationName: site.name,
+    icons: {
+      icon: [
+        { url: "/images/pharmaco-favicon.png", type: "image/png" },
+        { url: "/favicon.png", type: "image/png" },
+      ],
+      shortcut: "/images/pharmaco-favicon.png",
+      apple: [
+        {
+          url: "/images/pharmaco-favicon.png",
+          sizes: "180x180",
+          type: "image/png",
+        },
+      ],
+    },
     keywords: [
       "pharmacy",
       "Pharmaco Pharmacy",
