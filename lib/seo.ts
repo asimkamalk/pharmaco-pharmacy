@@ -195,13 +195,17 @@ export function buildRootMetadata(site: SiteConfig): Metadata {
     applicationName: site.name,
     icons: {
       icon: [
-        { url: "/images/pharmaco-favicon.png", type: "image/png" },
-        { url: "/favicon.png", type: "image/png" },
-      ],
-      shortcut: "/images/pharmaco-favicon.png",
-      apple: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/favicon.png", type: "image/png", sizes: "48x48" },
         {
           url: "/images/pharmaco-favicon.png",
+          type: "image/png",
+        },
+      ],
+      shortcut: "/favicon.ico",
+      apple: [
+        {
+          url: "/apple-icon.png",
           sizes: "180x180",
           type: "image/png",
         },
