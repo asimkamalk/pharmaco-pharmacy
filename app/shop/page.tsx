@@ -104,14 +104,14 @@ const ShopPage = async ({ searchParams }: ShopPageProps) => {
         <div className="mt-6 flex gap-8">
           <aside
             aria-label="Product filters"
-            className="hidden w-64 shrink-0 lg:block"
+            className="hidden w-64 shrink-0 overflow-hidden lg:block"
           >
-            <div className="sticky top-6 rounded-xl border border-black/10 bg-white p-5">
+            <div className="sticky top-6 max-h-[calc(100vh-4rem)] overflow-x-hidden overflow-y-auto rounded-xl border border-black/10 bg-white p-5">
               <ShopFilters categories={categories} brands={brands} />
             </div>
           </aside>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <div className="mb-5 flex items-center justify-between gap-3">
               <ShopFiltersDrawer categories={categories} brands={brands} />
               <ShopSort />

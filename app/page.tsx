@@ -135,20 +135,26 @@ const Home = async () => {
           </Reveal>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7">
-            {brands.map((brand, index) => (
+            {brands.slice(0, 14).map((brand, index) => (
               <Reveal key={brand.id} delayMs={Math.min(index, 6) * 50}>
                 <Link
                   href={`/shop?brand=${brand.slug}`}
                   className="group flex flex-col items-center rounded-xl border border-black/10 bg-white p-3 text-center transition-all duration-300 hover:border-shop_light_green/50 hover:shadow-md"
                 >
                   <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-black/5 bg-shop_light_bg sm:h-16 sm:w-16">
-                    <Image
-                      src={brand.image}
-                      alt=""
-                      width={64}
-                      height={64}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+                    {brand.image.includes("placeholder") ? (
+                      <span className="text-lg font-semibold text-shop_dark_green sm:text-xl">
+                        {brand.title.trim().charAt(0).toUpperCase()}
+                      </span>
+                    ) : (
+                      <Image
+                        src={brand.image}
+                        alt=""
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    )}
                   </span>
                   <span className="mt-2.5 line-clamp-2 text-xs font-semibold text-darkColor sm:text-sm">
                     {brand.title}

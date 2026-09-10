@@ -19,6 +19,44 @@ const priceRanges: PriceRange[] = [
   { label: "Rs. 2,500 & above", min: 2500 },
 ];
 
+function hasRealImage(url?: string | null) {
+  if (!url) return false;
+  return !url.includes("placeholder");
+}
+
+function FilterThumb({
+  src,
+  title,
+}: {
+  src?: string | null;
+  title: string;
+}) {
+  if (hasRealImage(src)) {
+    return (
+      <Image
+        src={src!}
+        alt=""
+        width={28}
+        height={28}
+        className="h-7 w-7 shrink-0 rounded-md border border-black/5 object-cover"
+      />
+    );
+  }
+
+  const initial = (title.trim().charAt(0) || "?").toUpperCase();
+  return (
+    <span
+      aria-hidden
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-black/10 bg-shop_light_bg text-[11px] font-semibold text-shop_dark_green"
+    >
+      {initial}
+    </span>
+  );
+}
+
+const filterBtn =
+  "flex w-full min-w-0 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-200 hover:bg-shop_light_bg";
+
 interface ShopFiltersProps {
   categories: Category[];
   brands: Brand[];
@@ -59,110 +97,104 @@ const ShopFilters = ({ categories, brands, onChange }: ShopFiltersProps) => {
     activeMax === (range.max?.toString() ?? "");
 
   return (
-    <div className="space-y-8">
-      <fieldset>
-        <legend className="mb-3 text-sm font-semibold uppercase tracking-wide text-darkColor">
+    <div className="min-w-0 space-y-8 overflow-hidden">
+      <div>
+        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-darkColor">
           Category
-        </legend>
-        <div className="space-y-1.5">
+        </p>
+        <div className="min-w-0 space-y-1.5">
           <button
+            type="button"
             onClick={() => applyParams({ category: undefined })}
             aria-pressed={!activeCategory}
             className={cn(
-              "block w-full rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-200 hover:bg-shop_light_bg",
+              filterBtn,
               !activeCategory
                 ? "bg-shop_light_pink font-semibold text-shop_dark_green"
                 : "text-lightColor",
             )}
           >
-            All Categories
+            <span className="min-w-0 truncate">All Categories</span>
           </button>
           {categories.map((category) => (
             <button
+              type="button"
               key={category.id}
               onClick={() => applyParams({ category: category.slug })}
               aria-pressed={activeCategory === category.slug}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-200 hover:bg-shop_light_bg",
+                filterBtn,
                 activeCategory === category.slug
                   ? "bg-shop_light_pink font-semibold text-shop_dark_green"
                   : "text-lightColor",
               )}
             >
-              <Image
-                src={category.image}
-                alt=""
-                width={28}
-                height={28}
-                className="h-7 w-7 rounded-md border border-black/5 object-cover"
-              />
-              <span className="truncate">{category.title}</span>
+              <FilterThumb src={category.image} title={category.title} />
+              <span className="min-w-0 truncate">{category.title}</span>
             </button>
           ))}
         </div>
-      </fieldset>
+      </div>
 
-      <fieldset>
-        <legend className="mb-3 text-sm font-semibold uppercase tracking-wide text-darkColor">
+      <div className="min-w-0">
+        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-darkColor">
           Brand
-        </legend>
-        <div className="space-y-1.5">
+        </p>
+        <div className="min-w-0 space-y-1.5">
           <button
+            type="button"
             onClick={() => applyParams({ brand: undefined })}
             aria-pressed={!activeBrand}
             className={cn(
-              "block w-full rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-200 hover:bg-shop_light_bg",
+              filterBtn,
               !activeBrand
                 ? "bg-shop_light_pink font-semibold text-shop_dark_green"
                 : "text-lightColor",
             )}
           >
-            All Brands
+            <span className="min-w-0 truncate">All Brands</span>
           </button>
           {brands.map((brand) => (
             <button
+              type="button"
               key={brand.id}
               onClick={() => applyParams({ brand: brand.slug })}
               aria-pressed={activeBrand === brand.slug}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-200 hover:bg-shop_light_bg",
+                filterBtn,
                 activeBrand === brand.slug
                   ? "bg-shop_light_pink font-semibold text-shop_dark_green"
                   : "text-lightColor",
               )}
             >
-              <Image
-                src={brand.image}
-                alt=""
-                width={28}
-                height={28}
-                className="h-7 w-7 rounded-md border border-black/5 object-cover"
-              />
-              <span className="truncate">{brand.title}</span>
+              <FilterThumb src={brand.image} title={brand.title} />
+              <span className="min-w-0 truncate">{brand.title}</span>
             </button>
           ))}
         </div>
-      </fieldset>
+      </div>
 
-      <fieldset>
-        <legend className="mb-3 text-sm font-semibold uppercase tracking-wide text-darkColor">
+      <div>
+        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-darkColor">
           Price
-        </legend>
-        <div className="space-y-1.5">
+        </p>
+        <div className="min-w-0 space-y-1.5">
           <button
+            type="button"
             onClick={() => applyParams({ min: undefined, max: undefined })}
             aria-pressed={!activeMin && !activeMax}
             className={cn(
-              "block w-full rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-200 hover:bg-shop_light_bg",
+              filterBtn,
               !activeMin && !activeMax
                 ? "bg-shop_light_pink font-semibold text-shop_dark_green"
                 : "text-lightColor",
             )}
           >
-            Any Price
+            <span className="min-w-0 truncate">Any Price</span>
           </button>
           {priceRanges.map((range) => (
             <button
+              type="button"
               key={range.label}
               onClick={() =>
                 applyParams({
@@ -172,20 +204,21 @@ const ShopFilters = ({ categories, brands, onChange }: ShopFiltersProps) => {
               }
               aria-pressed={isRangeActive(range)}
               className={cn(
-                "block w-full rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-200 hover:bg-shop_light_bg",
+                filterBtn,
                 isRangeActive(range)
                   ? "bg-shop_light_pink font-semibold text-shop_dark_green"
                   : "text-lightColor",
               )}
             >
-              {range.label}
+              <span className="min-w-0 truncate">{range.label}</span>
             </button>
           ))}
         </div>
-      </fieldset>
+      </div>
 
       {hasActiveFilters && (
         <button
+          type="button"
           onClick={() =>
             applyParams({
               category: undefined,

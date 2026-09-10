@@ -1,4 +1,5 @@
 import type { Brand, Category, Product } from "@/types";
+import { sanitizeProductImages } from "@/lib/catalog-image";
 
 type DbCategory = {
   id: string;
@@ -73,9 +74,11 @@ export function mapProduct(
   product: DbProduct,
   options?: { includeCost?: boolean },
 ): Product {
-  const images = [...product.images]
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((image) => image.url);
+  const images = sanitizeProductImages(
+    [...product.images]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((image) => image.url),
+  );
 
   return {
     id: product.id,
@@ -94,8 +97,7 @@ export function mapProduct(
     discount: product.discount,
     stock: product.stock,
     sku: product.sku,
-    images:
-      images.length > 0 ? images : ["/images/products/placeholder.svg"],
+    images,
     requiresPrescription: product.requiresPrescription,
     sellByStrip: product.sellByStrip,
     unitsPerStrip: product.unitsPerStrip ?? undefined,

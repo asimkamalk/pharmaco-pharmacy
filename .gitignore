@@ -57,3 +57,6 @@ next-env.d.ts
 /scripts/progress.json
 /scripts/_dvago-*
 /scripts/_probe-*
+
+.vercel
+.env*
