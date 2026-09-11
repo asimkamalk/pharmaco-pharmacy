@@ -20,6 +20,7 @@ import fs from "node:fs";
 import path from "node:path";
 import axios, { type AxiosInstance } from "axios";
 import { XMLParser } from "fast-xml-parser";
+import { rebrandCatalogText } from "../lib/rebrand-text";
 
 const API_BASE =
   process.env.IMPORT_API_BASE?.replace(/\/$/, "") ||
@@ -108,11 +109,9 @@ function mapProduct(p: DvagoProduct) {
   return {
     title: (p.Title || "").trim(),
     slug: (p.Slug || "").trim(),
-    description: (
-      p.Description ||
-      p.MetaDescription ||
-      ""
-    ).trim(),
+    description: rebrandCatalogText(
+      (p.Description || p.MetaDescription || "").trim(),
+    ),
     price: Math.round(price * 100) / 100,
     originalPrice: originalPrice
       ? Math.round(originalPrice * 100) / 100
@@ -129,7 +128,7 @@ function mapProduct(p: DvagoProduct) {
       }
       return "";
     })(),
-    sku: p.ProductID ? `dvago-${p.ProductID}` : undefined,
+    sku: p.ProductID ? `pharmaco-${p.ProductID}` : undefined,
     stock: Math.max(0, Math.min(9999, Math.floor(toNumber(p.AvailableQty, 0)))),
     requiresPrescription:
       String(p.PrescriptionRequired || "").toLowerCase() === "true",

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { rebrandCatalogText, rebrandSku } from "@/lib/rebrand-text";
 
 export const runtime = "nodejs";
 
@@ -72,10 +73,11 @@ export async function POST(request: Request) {
   const categoryTitle = data.category || "General";
   const brandSlug = slugify(brandTitle) || "unbranded";
   const categorySlug = slugify(categoryTitle) || "general";
-  const sku =
+  const sku = rebrandSku(
     data.sku?.trim() ||
-    (data.sourceId ? `dvago-${data.sourceId}` : `sku-${productSlug}`);
-  const description = data.description ?? "";
+      (data.sourceId ? `pharmaco-${data.sourceId}` : `sku-${productSlug}`),
+  );
+  const description = rebrandCatalogText(data.description ?? "");
   const stock = data.stock ?? 0;
 
   const listPrice =

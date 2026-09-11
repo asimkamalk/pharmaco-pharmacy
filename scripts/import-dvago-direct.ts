@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import axios from "axios";
 import { PrismaClient } from "@prisma/client";
+import { rebrandCatalogText } from "../lib/rebrand-text";
 
 const prisma = new PrismaClient();
 const DVAGO_API = "https://apidb.dvago.pk";
@@ -92,7 +93,7 @@ async function upsertProduct(p: DvagoProduct) {
   ).trim();
   const brandSlug = slugify(brandTitle) || "unbranded";
   const categorySlug = slugify(categoryTitle) || "general";
-  const sku = p.ProductID ? `dvago-${p.ProductID}` : `sku-${productSlug}`;
+  const sku = p.ProductID ? `pharmaco-${p.ProductID}` : `sku-${productSlug}`;
 
   const sale = toNumber(p.SalePrice ?? p.Price);
   const discountPrice = toNumber(p.DiscountPrice);
@@ -107,7 +108,9 @@ async function upsertProduct(p: DvagoProduct) {
         )
       : 0;
 
-  const description = (p.Description || p.MetaDescription || "").trim();
+  const description = rebrandCatalogText(
+    (p.Description || p.MetaDescription || "").trim(),
+  );
   const rawImage = (p.ProductImage || "").trim();
   const imageUrl =
     rawImage.startsWith("http") &&

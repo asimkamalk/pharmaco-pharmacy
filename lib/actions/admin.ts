@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/admin";
 import { firstZodMessage, redirectWithFlash } from "@/lib/admin-flash";
 import { prisma } from "@/lib/prisma";
 import { sanitizeProductHtml } from "@/lib/sanitize";
+import { rebrandCatalogText, rebrandSku } from "@/lib/rebrand-text";
 import {
   getFormFile,
   saveUploadedImage,
@@ -152,13 +153,15 @@ export async function saveProduct(formData: FormData) {
   }
 
   const payload = {
-    name: data.name,
+    name: rebrandCatalogText(data.name),
     slug,
-    description: data.description || "",
-    longDescription: sanitizeProductHtml(data.longDescription || ""),
-    metaDescription: data.metaDescription || "",
-    metaTitle: data.metaTitle || "",
-    sku: data.sku,
+    description: rebrandCatalogText(data.description || ""),
+    longDescription: sanitizeProductHtml(
+      rebrandCatalogText(data.longDescription || ""),
+    ),
+    metaDescription: rebrandCatalogText(data.metaDescription || ""),
+    metaTitle: rebrandCatalogText(data.metaTitle || ""),
+    sku: rebrandSku(data.sku),
     purchasePrice: data.purchasePrice,
     price: data.price,
     discount: data.discount,

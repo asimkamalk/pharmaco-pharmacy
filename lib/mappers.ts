@@ -1,5 +1,6 @@
 import type { Brand, Category, Product } from "@/types";
 import { sanitizeProductImages } from "@/lib/catalog-image";
+import { rebrandCatalogText, rebrandSku } from "@/lib/rebrand-text";
 
 type DbCategory = {
   id: string;
@@ -55,7 +56,7 @@ export function mapCategory(category: DbCategory): Category {
     id: category.id,
     title: category.title,
     slug: category.slug,
-    description: category.description,
+    description: rebrandCatalogText(category.description),
     image: category.image,
   };
 }
@@ -65,7 +66,7 @@ export function mapBrand(brand: DbBrand): Brand {
     id: brand.id,
     title: brand.title,
     slug: brand.slug,
-    description: brand.description,
+    description: rebrandCatalogText(brand.description),
     image: brand.image,
   };
 }
@@ -82,12 +83,18 @@ export function mapProduct(
 
   return {
     id: product.id,
-    name: product.name,
+    name: rebrandCatalogText(product.name),
     slug: product.slug,
-    description: product.description,
-    longDescription: product.longDescription || undefined,
-    metaDescription: product.metaDescription || undefined,
-    metaTitle: product.metaTitle || undefined,
+    description: rebrandCatalogText(product.description),
+    longDescription: product.longDescription
+      ? rebrandCatalogText(product.longDescription)
+      : undefined,
+    metaDescription: product.metaDescription
+      ? rebrandCatalogText(product.metaDescription)
+      : undefined,
+    metaTitle: product.metaTitle
+      ? rebrandCatalogText(product.metaTitle)
+      : undefined,
     categorySlug: product.category.slug,
     categoryTitle: product.category.title,
     brandSlug: product.brand.slug,
@@ -96,7 +103,7 @@ export function mapProduct(
     purchasePrice: options?.includeCost ? product.purchasePrice : undefined,
     discount: product.discount,
     stock: product.stock,
-    sku: product.sku,
+    sku: rebrandSku(product.sku),
     images,
     requiresPrescription: product.requiresPrescription,
     sellByStrip: product.sellByStrip,
