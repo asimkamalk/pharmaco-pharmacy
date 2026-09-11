@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 !.env.example
 
@@ -53,10 +53,13 @@ next-env.d.ts
 
 /lib/generated/prisma
 
-# DVAGO import resume state + local probes
+# catalog import resume state + local probes
 /scripts/progress.json
 /scripts/_dvago-*
 /scripts/_probe-*
 
-.vercel
-.env*
+# agent skill packs (not part of the app)
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
