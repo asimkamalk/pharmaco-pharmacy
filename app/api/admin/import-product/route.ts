@@ -162,6 +162,7 @@ export async function POST(request: Request) {
       discount,
       stock,
       requiresPrescription: false,
+      categoryId: category.id,
       brandId: brand.id,
       isArchived: false,
       manufacturer: brandTitle,
