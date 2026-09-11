@@ -11,6 +11,10 @@ import path from "node:path";
 import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 import { rebrandCatalogText } from "../lib/rebrand-text";
+import {
+  deriveStripPricing,
+  parsePackFromTitle,
+} from "../lib/pack-from-title";
 
 const prisma = new PrismaClient();
 const DVAGO_API = "https://apidb.dvago.pk";
@@ -80,10 +84,12 @@ function saveProgress(progress: Progress) {
 }
 
 async function upsertProduct(p: DvagoProduct) {
-  const title = (p.Title || "").trim();
-  if (!title) throw new Error("missing title");
+  const rawTitle = (p.Title || "").trim();
+  if (!rawTitle) throw new Error("missing title");
 
-  const productSlug = slugify(p.Slug || title);
+  const pack = parsePackFromTitle(rawTitle);
+  const title = pack.cleanName;
+  const productSlug = slugify(p.Slug || rawTitle);
   const brandTitle = (p.Brand || "Unbranded").trim();
   const categoryTitle = (
     p.Category ||
@@ -122,6 +128,21 @@ async function upsertProduct(p: DvagoProduct) {
     Math.min(9999, Math.floor(toNumber(p.AvailableQty, 0))),
   );
 
+  const basePurchase = Math.round(sellPrice * 0.8 * 100) / 100;
+  const pricing = pack.sellByStrip
+    ? deriveStripPricing({
+        listPrice,
+        purchasePrice: basePurchase,
+        stripsPerBox: pack.stripsPerBox ?? 1,
+        priceIsPerStrip: pack.priceIsPerStrip,
+      })
+    : {
+        price: listPrice,
+        stripPrice: null as number | null,
+        purchasePrice: basePurchase,
+        stripPurchasePrice: null as number | null,
+      };
+
   const category = await prisma.category.upsert({
     where: { slug: categorySlug },
     create: {
@@ -157,8 +178,8 @@ async function upsertProduct(p: DvagoProduct) {
       : "",
     metaDescription: description.slice(0, 160),
     sku,
-    purchasePrice: Math.round(sellPrice * 0.8 * 100) / 100,
-    price: listPrice,
+    purchasePrice: pricing.purchasePrice,
+    price: pricing.price,
     discount,
     stock,
     requiresPrescription:
@@ -167,6 +188,12 @@ async function upsertProduct(p: DvagoProduct) {
     brandId: brand.id,
     isArchived: false,
     manufacturer: brandTitle,
+    dosageForm: pack.dosageForm,
+    sellByStrip: pack.sellByStrip,
+    unitsPerStrip: pack.unitsPerStrip,
+    stripsPerBox: pack.stripsPerBox,
+    stripPrice: pricing.stripPrice,
+    stripPurchasePrice: pricing.stripPurchasePrice,
   };
 
   let productId: string;

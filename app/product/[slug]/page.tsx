@@ -101,9 +101,11 @@ const ProductPage = async ({ params }: ProductPageProps) => {
     {
       label: "Sold as",
       value: product.sellByStrip
-        ? product.stripsPerBox && product.unitsPerStrip
-          ? `Box (${product.stripsPerBox} strips) or single strip (${product.unitsPerStrip} ${stripContentNoun(product, product.unitsPerStrip)})`
-          : "Box or single strip"
+        ? product.stripsPerBox === 1 && product.unitsPerStrip
+          ? `1 box contains ${product.unitsPerStrip} ${stripContentNoun(product, product.unitsPerStrip)} and 1 strip`
+          : product.stripsPerBox && product.unitsPerStrip
+            ? `Box (${product.stripsPerBox} strips) or single strip (${product.unitsPerStrip} ${stripContentNoun(product, product.unitsPerStrip)})`
+            : "Box or single strip"
         : undefined,
     },
     { label: "Brand", value: brand?.title },

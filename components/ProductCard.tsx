@@ -3,7 +3,7 @@ import Link from "next/link";
 import AddToWishlistButton from "./AddToWishlistButton";
 import PriceView from "./PriceView";
 import ProductPurchaseControls from "./ProductPurchaseControls";
-import { listPriceForPack } from "@/lib/pack";
+import { listPriceForPack, isSingleStripBox } from "@/lib/pack";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -13,7 +13,8 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const categoryTitle = product.categoryTitle;
   const outOfStock = product.stock <= 0;
-  const showStripPrice = Boolean(product.sellByStrip);
+  const singleStripBox = isSingleStripBox(product);
+  const showStripPrice = Boolean(product.sellByStrip) && !singleStripBox;
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-shop_dark_green/10 transition duration-300 hover:-translate-y-0.5 hover:ring-shop_light_green/35">

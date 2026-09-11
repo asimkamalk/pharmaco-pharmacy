@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { rebrandCatalogText, rebrandSku } from "@/lib/rebrand-text";
+import {
+  deriveStripPricing,
+  parsePackFromTitle,
+} from "@/lib/pack-from-title";
 
 export const runtime = "nodejs";
 
@@ -68,7 +72,9 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data;
-  const productSlug = slugify(data.slug || data.title);
+  const pack = parsePackFromTitle(data.title);
+  const cleanTitle = pack.cleanName || data.title.trim();
+  const productSlug = slugify(data.slug || cleanTitle || data.title);
   const brandTitle = data.brand || "Unbranded";
   const categoryTitle = data.category || "General";
   const brandSlug = slugify(brandTitle) || "unbranded";
@@ -91,6 +97,21 @@ export async function POST(request: Request) {
           Math.max(0, Math.round((1 - data.price / listPrice) * 100)),
         )
       : 0;
+
+  const basePurchase = Math.round(data.price * 0.8 * 100) / 100;
+  const pricing = pack.sellByStrip
+    ? deriveStripPricing({
+        listPrice,
+        purchasePrice: basePurchase,
+        stripsPerBox: pack.stripsPerBox ?? 1,
+        priceIsPerStrip: pack.priceIsPerStrip,
+      })
+    : {
+        price: listPrice,
+        stripPrice: null as number | null,
+        purchasePrice: basePurchase,
+        stripPurchasePrice: null as number | null,
+      };
 
   const rawImage = (data.imageUrl || "").trim();
   const imageUrl =
@@ -128,7 +149,7 @@ export async function POST(request: Request) {
     const existing = existingBySku ?? existingBySlug;
 
     const payload = {
-      name: data.title,
+      name: cleanTitle,
       slug: existing?.slug ?? productSlug,
       description: description.slice(0, 500),
       longDescription: description
@@ -136,8 +157,8 @@ export async function POST(request: Request) {
         : "",
       metaDescription: description.slice(0, 160),
       sku,
-      purchasePrice: Math.round(data.price * 0.8 * 100) / 100,
-      price: listPrice,
+      purchasePrice: pricing.purchasePrice,
+      price: pricing.price,
       discount,
       stock,
       requiresPrescription: Boolean(data.requiresPrescription),
@@ -145,6 +166,12 @@ export async function POST(request: Request) {
       brandId: brand.id,
       isArchived: false,
       manufacturer: brandTitle,
+      dosageForm: pack.dosageForm,
+      sellByStrip: pack.sellByStrip,
+      unitsPerStrip: pack.unitsPerStrip,
+      stripsPerBox: pack.stripsPerBox,
+      stripPrice: pricing.stripPrice,
+      stripPurchasePrice: pricing.stripPurchasePrice,
     };
 
     let productId: string;
@@ -164,7 +191,7 @@ export async function POST(request: Request) {
       data: {
         productId,
         url: imageUrl,
-        alt: data.title,
+        alt: cleanTitle,
         sortOrder: 0,
       },
     });

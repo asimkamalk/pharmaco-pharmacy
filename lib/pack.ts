@@ -42,6 +42,14 @@ export function stripsPerBoxOf(product: { stripsPerBox?: number | null }) {
   return Math.max(1, product.stripsPerBox ?? 1);
 }
 
+/** True when the catalog "box" is a single strip (box price === strip price). */
+export function isSingleStripBox(product: {
+  sellByStrip?: boolean | null;
+  stripsPerBox?: number | null;
+}) {
+  return Boolean(product.sellByStrip) && stripsPerBoxOf(product) === 1;
+}
+
 /** How many inventory strips this cart/order line consumes */
 export function stockUnitsForLine(
   product: PackProduct,

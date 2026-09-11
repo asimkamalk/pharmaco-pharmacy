@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { stripsPerBoxOf } from "@/lib/pack";
+import { stripsPerBoxOf, isSingleStripBox } from "@/lib/pack";
 import type { Product } from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
@@ -43,6 +43,14 @@ export function formatStripHint(product: {
   if (!product.sellByStrip) return null;
   const units = product.unitsPerStrip;
   const strips = product.stripsPerBox;
+
+  if (isSingleStripBox(product)) {
+    if (units && units > 0) {
+      return `1 box contains ${units} ${stripContentNoun(product, units)} · 1 strip`;
+    }
+    return "1 box · 1 strip";
+  }
+
   const unitPart =
     units && units > 0
       ? `${units} ${stripContentNoun(product, units)} per strip`
@@ -63,6 +71,14 @@ export function formatStripAvailability(product: {
   if (!product.sellByStrip) return null;
   const units = product.unitsPerStrip;
   const strips = stripsPerBoxOf(product);
+
+  if (isSingleStripBox(product)) {
+    if (units && units > 0) {
+      return `1 box contains ${units} ${stripContentNoun(product, units)} and 1 strip.`;
+    }
+    return "Sold as 1 box (1 strip).";
+  }
+
   const unitText =
     units && units > 0
       ? `Each strip contains ${units} ${stripContentNoun(product, units)}.`
