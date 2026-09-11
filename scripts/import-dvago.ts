@@ -130,9 +130,7 @@ function mapProduct(p: DvagoProduct) {
     })(),
     sku: p.ProductID ? `pharmaco-${p.ProductID}` : undefined,
     stock: Math.max(0, Math.min(9999, Math.floor(toNumber(p.AvailableQty, 0)))),
-    requiresPrescription:
-      String(p.PrescriptionRequired || "").toLowerCase() === "true",
-    sourceId: p.ProductID || undefined,
+    requiresPrescription: false,
   };
 }
 

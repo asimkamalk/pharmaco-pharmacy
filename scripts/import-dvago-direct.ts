@@ -182,8 +182,7 @@ async function upsertProduct(p: DvagoProduct) {
     price: pricing.price,
     discount,
     stock,
-    requiresPrescription:
-      String(p.PrescriptionRequired || "").toLowerCase() === "true",
+    requiresPrescription: false,
     categoryId: category.id,
     brandId: brand.id,
     isArchived: false,
