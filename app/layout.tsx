@@ -37,7 +37,7 @@ export default async function RootLayout({
   const [session, site] = await Promise.all([auth(), getSiteConfig()]);
 
   return (
-    <html lang="en" className={montserrat.variable}>
+    <html lang="en" className={montserrat.variable} data-scroll-behavior="smooth">
       <body className="font-sans antialiased" suppressHydrationWarning>
         <JsonLd
           data={[buildLocalBusinessJsonLd(site), buildWebsiteJsonLd(site)]}
