@@ -29,8 +29,8 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
-    // Allow logo compression below the default 75 (Lighthouse image delivery).
-    qualities: [50, 75],
+    // Logo uses q=30; keep 75 for product/hero images.
+    qualities: [30, 75],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy:
       "default-src 'self'; script-src 'none'; sandbox;",

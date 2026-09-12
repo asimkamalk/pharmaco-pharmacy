@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { MapPin } from "lucide-react";
 import { useSiteConfig } from "@/components/SiteConfigProvider";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ interface GoogleMapProps {
 
 const GoogleMap = ({ className, title, description }: GoogleMapProps) => {
   const siteConfig = useSiteConfig();
+  const [showMap, setShowMap] = useState(false);
   const mapTitle = title ?? "Find us in Hayatabad";
   const mapDescription =
     description ??
@@ -46,14 +48,29 @@ const GoogleMap = ({ className, title, description }: GoogleMapProps) => {
         </a>
       </div>
       <div className="relative aspect-[16/9] w-full bg-shop_light_bg sm:aspect-[21/9]">
-        <iframe
-          title={`${siteConfig.name} location map`}
-          src={siteConfig.map.embedUrl}
-          className="absolute inset-0 h-full w-full border-0"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          allowFullScreen
-        />
+        {showMap ? (
+          <iframe
+            title={`${siteConfig.name} location map`}
+            src={siteConfig.map.embedUrl}
+            className="absolute inset-0 h-full w-full border-0"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_30%_20%,rgba(220,38,38,0.08),transparent_45%),linear-gradient(180deg,#f8faf8,#eef2ef)] px-6 text-center">
+            <MapPin className="h-8 w-8 text-shop_orange" aria-hidden />
+            <p className="max-w-sm text-sm text-lightColor">
+              {siteConfig.location.address}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowMap(true)}
+              className="inline-flex h-10 items-center justify-center rounded-lg bg-shop_btn_dark_green px-5 text-sm font-semibold text-white transition-colors hover:bg-shop_dark_green"
+            >
+              Show map
+            </button>
+          </div>
+        )}
       </div>
       <p className="px-5 py-3 text-xs text-lightColor">
         {siteConfig.location.address} · {siteConfig.contact.openingHours}
