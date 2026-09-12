@@ -18,8 +18,8 @@ const Logo = () => {
         alt={site.name}
         width={400}
         height={228}
-        // Tiny on-screen mark — Lighthouse still wanted more compression at q=50.
         quality={30}
+        loading="eager"
         sizes="(max-width: 640px) 140px, (max-width: 1024px) 180px, 200px"
         className="h-auto w-32 object-contain sm:w-36 lg:w-44 xl:w-48"
       />
