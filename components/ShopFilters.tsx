@@ -1,7 +1,9 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Brand, Category } from "@/types";
 
@@ -18,6 +20,8 @@ const priceRanges: PriceRange[] = [
   { label: "Rs. 1,000 – 2,500", min: 1000, max: 2500 },
   { label: "Rs. 2,500 & above", min: 2500 },
 ];
+
+const BRANDS_PREVIEW = 5;
 
 function hasRealImage(url?: string | null) {
   if (!url) return false;
@@ -75,6 +79,21 @@ const ShopFilters = ({ categories, brands, onChange }: ShopFiltersProps) => {
   const hasActiveFilters = Boolean(
     activeCategory || activeBrand || activeMin || activeMax,
   );
+
+  const activeBrandIndex = useMemo(
+    () => brands.findIndex((brand) => brand.slug === activeBrand),
+    [brands, activeBrand],
+  );
+
+  const [brandsExpanded, setBrandsExpanded] = useState(
+    () => activeBrandIndex >= BRANDS_PREVIEW,
+  );
+
+  const visibleBrands =
+    brandsExpanded || brands.length <= BRANDS_PREVIEW
+      ? brands
+      : brands.slice(0, BRANDS_PREVIEW);
+  const hiddenBrandCount = Math.max(0, brands.length - BRANDS_PREVIEW);
 
   const applyParams = (updates: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -154,12 +173,13 @@ const ShopFilters = ({ categories, brands, onChange }: ShopFiltersProps) => {
           >
             <span className="min-w-0 truncate">All Brands</span>
           </button>
-          {brands.map((brand) => (
+          {visibleBrands.map((brand) => (
             <button
               type="button"
               key={brand.id}
               onClick={() => applyParams({ brand: brand.slug })}
               aria-pressed={activeBrand === brand.slug}
+              title={brand.title}
               className={cn(
                 filterBtn,
                 activeBrand === brand.slug
@@ -171,6 +191,26 @@ const ShopFilters = ({ categories, brands, onChange }: ShopFiltersProps) => {
               <span className="min-w-0 truncate">{brand.title}</span>
             </button>
           ))}
+          {hiddenBrandCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => setBrandsExpanded((open) => !open)}
+              aria-expanded={brandsExpanded}
+              className="mt-1 inline-flex w-full items-center justify-center gap-1.5 rounded-md px-2.5 py-2 text-sm font-semibold text-shop_btn_dark_green transition-colors hover:bg-shop_light_pink"
+            >
+              {brandsExpanded ? (
+                <>
+                  Show less
+                  <ChevronUp className="h-4 w-4" aria-hidden />
+                </>
+              ) : (
+                <>
+                  Show {hiddenBrandCount} more
+                  <ChevronDown className="h-4 w-4" aria-hidden />
+                </>
+              )}
+            </button>
+          ) : null}
         </div>
       </div>
 
