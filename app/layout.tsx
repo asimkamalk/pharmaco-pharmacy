@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Poppins } from "next/font/google";
+import { Montserrat } from "next/font/google";
 
 import "./globals.css";
 import AuthSessionProvider from "@/components/AuthSessionProvider";
@@ -16,17 +16,10 @@ import {
   buildWebsiteJsonLd,
 } from "@/lib/seo";
 
-const poppins = Poppins({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins-sans",
-  display: "swap",
-});
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-fraunces",
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-montserrat",
   display: "swap",
 });
 
@@ -43,8 +36,8 @@ export default async function RootLayout({
   const [session, site] = await Promise.all([auth(), getSiteConfig()]);
 
   return (
-    <html lang="en" className={`${poppins.variable} ${fraunces.variable}`}>
-      <body className="font-poppins antialiased">
+    <html lang="en" className={montserrat.variable}>
+      <body className="font-sans antialiased">
         <JsonLd
           data={[buildLocalBusinessJsonLd(site), buildWebsiteJsonLd(site)]}
         />

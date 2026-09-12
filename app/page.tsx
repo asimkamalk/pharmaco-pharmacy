@@ -64,7 +64,7 @@ function SectionHeader({
       {href ? (
         <Link
           href={href}
-          className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-shop_leaf transition-colors duration-200 hover:text-shop_dark_green"
+          className="inline-flex shrink-0 items-center gap-1.5 text-sm font-bold text-shop_btn_dark_green transition-colors duration-200 hover:text-shop_leaf"
         >
           View all
           <ArrowRight className="h-4 w-4" aria-hidden />
@@ -174,18 +174,18 @@ const Home = async () => {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-shop_orange">
                   Local delivery
                 </p>
-                <h2 className="store-heading mt-2 text-2xl text-white sm:text-3xl">
+                <h2 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   {siteConfig.home.promoHeadline ||
                     `Free delivery on orders above ${formatPrice(siteConfig.delivery.freeDeliveryAbove)}`}
                 </h2>
-                <p className="mt-2 text-sm text-white/80 sm:text-[15px]">
+                <p className="mt-2 text-sm text-white/85 sm:text-[15px]">
                   {siteConfig.home.promoSubcopy ||
                     `${siteConfig.delivery.estimate}. Pay with COD, bank transfer, EasyPaisa or JazzCash.`}
                 </p>
               </div>
               <Link
                 href="/shop"
-                className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-white px-7 text-sm font-semibold text-shop_dark_green transition duration-200 hover:bg-shop_light_pink"
+                className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-shop_btn_dark_green px-8 text-[15px] font-bold text-white shadow-[0_12px_28px_-12px_rgba(220,38,38,0.85)] transition duration-200 hover:bg-shop_leaf"
               >
                 Order Now
               </Link>
@@ -225,7 +225,7 @@ const Home = async () => {
               {siteConfig.home.rxOrderSteps.map((step, index) => (
                 <Reveal key={step} delayMs={index * 80}>
                   <li className="flex gap-3 rounded-2xl bg-white/80 p-3.5 ring-1 ring-shop_dark_green/8 sm:gap-4 sm:p-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-shop_dark_green text-sm font-bold text-white">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-shop_btn_dark_green text-sm font-bold text-white">
                       {index + 1}
                     </span>
                     <p className="pt-1 text-sm leading-relaxed text-darkColor sm:text-[15px]">
@@ -240,7 +240,7 @@ const Home = async () => {
               <div className="mt-8">
                 <Link
                   href="/order-by-prescription"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-shop_btn_dark_green px-6 text-sm font-semibold text-white transition-colors hover:bg-shop_dark_green/90"
+                  className="btn-cta h-12 px-8 text-[15px]"
                 >
                   {siteConfig.home.rxOrderCtaLabel}
                   <ArrowRight className="h-4 w-4" aria-hidden />

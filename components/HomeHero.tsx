@@ -133,11 +133,11 @@ const HomeHero = ({ slides }: HomeHeroProps) => {
                         {slide.subcopy}
                       </p>
                     )}
-                    <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center">
+                    <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
                       {slide.ctaLabel && (
                         <Link
                           href={slide.ctaHref || "/shop"}
-                          className="inline-flex h-11 items-center justify-center rounded-lg bg-shop_orange px-6 text-sm font-semibold text-white transition-colors hover:bg-shop_orange/90"
+                          className="btn-cta h-12 px-8 text-[15px]"
                         >
                           {slide.ctaLabel}
                         </Link>
@@ -145,7 +145,7 @@ const HomeHero = ({ slides }: HomeHeroProps) => {
                       {slide.ctaSecondaryLabel && (
                         <Link
                           href={slide.ctaSecondaryHref || "/contact"}
-                          className="inline-flex h-11 items-center justify-center rounded-lg border border-white/40 bg-white/10 px-6 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                          className="btn-cta-secondary h-12 px-8 text-[15px]"
                         >
                           {slide.ctaSecondaryLabel}
                         </Link>

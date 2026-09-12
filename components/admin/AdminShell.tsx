@@ -44,7 +44,7 @@ function NavLinks({
   const active =
     variant === "sidebar"
       ? "bg-white/15 text-white shadow-sm ring-1 ring-white/10"
-      : "bg-shop_light_green/10 text-shop_dark_green";
+      : "bg-shop_light_pink text-shop_btn_dark_green";
 
   return (
     <div className="space-y-5">
@@ -121,7 +121,7 @@ const AdminShell = ({
   }, [mobileOpen]);
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f3f6f4_0%,#f6f6f6_40%,#f8f5f1_100%)]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#fafafa_0%,#f5f5f5_40%,#ffffff_100%)]">
       <div className="relative flex min-h-screen">
         <aside className="relative hidden w-[17rem] shrink-0 lg:flex lg:flex-col">
           <div className="sticky top-0 flex h-screen flex-col overflow-hidden bg-shop_dark_green text-white">

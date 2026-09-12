@@ -5,23 +5,24 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-shop_light_pink: #fcf0e4;
-  --color-shop_dark_green: #063c28;
-  --color-shop_btn_dark_green: #063d29;
-  --color-shop_light_bg: #f3f6f3;
-  --color-shop_light_green: #3b9c3c;
-  --color-shop_orange: #fb6c08;
-  --color-darkColor: #151515;
-  --color-lightColor: #52525b;
-  --color-lightOrange: #fca99b;
-  --color-shop_mist: #e8f0ea;
-  --color-shop_leaf: #1f6b45;
+  /* Red / Black / White brand palette (token names kept for compatibility) */
+  --color-shop_light_pink: #fef2f2;
+  --color-shop_dark_green: #0a0a0a;
+  --color-shop_btn_dark_green: #dc2626;
+  --color-shop_light_bg: #f5f5f5;
+  --color-shop_light_green: #b91c1c;
+  --color-shop_orange: #ef4444;
+  --color-darkColor: #0a0a0a;
+  --color-lightColor: #525252;
+  --color-lightOrange: #fecaca;
+  --color-shop_mist: #fafafa;
+  --color-shop_leaf: #991b1b;
 }
 
 @theme inline {
-  --font-poppins: var(--font-poppins-sans), sans-serif;
-  --font-heading: var(--font-fraunces), var(--font-poppins-sans), serif;
-  --font-sans: var(--font-poppins-sans), sans-serif;
+  --font-poppins: var(--font-montserrat), sans-serif;
+  --font-heading: var(--font-montserrat), sans-serif;
+  --font-sans: var(--font-montserrat), sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -63,38 +64,38 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #dc2626;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f5f5f5;
+  --muted-foreground: #525252;
+  --accent: #fef2f2;
+  --accent-foreground: #0a0a0a;
+  --destructive: #dc2626;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #dc2626;
+  --chart-1: #dc2626;
+  --chart-2: #0a0a0a;
+  --chart-3: #737373;
+  --chart-4: #a3a3a3;
+  --chart-5: #e5e5e5;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #dc2626;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #171717;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #262626;
+  --sidebar-ring: #dc2626;
 }
 
 .dark {
@@ -149,7 +150,7 @@
   }
 
   ::selection {
-    background-color: color-mix(in oklab, #3b9c3c 25%, white);
+    background-color: color-mix(in oklab, #dc2626 22%, white);
   }
 }
 
@@ -194,14 +195,14 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 3px solid #3b9c3c;
+  border-left: 3px solid #dc2626;
   padding-left: 0.75rem;
-  color: #52525b;
+  color: #525252;
   margin: 0.75rem 0;
 }
 
 .ProseMirror a {
-  color: #3b9c3c;
+  color: #b91c1c;
   text-decoration: underline;
 }
 
@@ -220,21 +221,21 @@
 }
 
 .product-prose h1 {
-  color: #151515;
+  color: #0a0a0a;
   font-size: 1.75rem;
   font-weight: 700;
   margin: 1.25rem 0 0.5rem;
 }
 
 .product-prose h2 {
-  color: #151515;
+  color: #0a0a0a;
   font-size: 1.35rem;
   font-weight: 700;
   margin: 1.1rem 0 0.45rem;
 }
 
 .product-prose h3 {
-  color: #151515;
+  color: #0a0a0a;
   font-size: 1.15rem;
   font-weight: 600;
   margin: 1rem 0 0.4rem;
@@ -257,25 +258,25 @@
 }
 
 .product-prose a {
-  color: #3b9c3c;
+  color: #b91c1c;
   text-decoration: underline;
 }
 
 .product-prose a:hover {
-  color: #063c28;
+  color: #0a0a0a;
 }
 
 .product-prose strong,
 .product-prose b {
-  color: #151515;
+  color: #0a0a0a;
   font-weight: 600;
 }
 
 .product-prose blockquote {
-  border-left: 3px solid #3b9c3c;
+  border-left: 3px solid #dc2626;
   padding-left: 0.85rem;
   margin: 0.85rem 0;
-  color: #52525b;
+  color: #525252;
 }
 
 @keyframes hero-progress-fill {
@@ -399,7 +400,7 @@
 
 .admin-scrollbar-light {
   scrollbar-width: thin;
-  scrollbar-color: rgba(6, 60, 40, 0.25) transparent;
+  scrollbar-color: rgba(10, 10, 10, 0.25) transparent;
 }
 
 .admin-scrollbar-light::-webkit-scrollbar {
@@ -412,12 +413,12 @@
 }
 
 .admin-scrollbar-light::-webkit-scrollbar-thumb {
-  background-color: rgba(6, 60, 40, 0.22);
+  background-color: rgba(10, 10, 10, 0.22);
   border-radius: 999px;
 }
 
 .admin-scrollbar-light::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(6, 60, 40, 0.38);
+  background-color: rgba(10, 10, 10, 0.38);
 }
 
 .admin-scrollbar-light::-webkit-scrollbar-button {
@@ -426,43 +427,95 @@
   height: 0;
 }
 
-/* Storefront atmosphere */
+/* Storefront atmosphere — red / black / white */
 .store-surface {
   background:
-    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(252, 240, 228, 0.7), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 10%, rgba(232, 240, 234, 0.9), transparent 50%),
-    linear-gradient(180deg, #fafcfb 0%, #f3f6f3 100%);
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(254, 242, 242, 0.9), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 10%, rgba(245, 245, 245, 0.95), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
 }
 
 .store-surface-soft {
   background:
-    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(252, 240, 228, 0.55), transparent 60%),
-    #f3f6f3;
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(254, 242, 242, 0.7), transparent 60%),
+    #f5f5f5;
 }
 
 .store-mesh {
-  background-color: #f7faf8;
-  background-image: radial-gradient(rgba(6, 60, 40, 0.04) 1px, transparent 1px);
+  background-color: #fafafa;
+  background-image: radial-gradient(rgba(10, 10, 10, 0.045) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
 .store-heading {
   font-family: var(--font-heading);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #151515;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0a0a0a;
 }
 
 .store-kicker {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #3b9c3c;
+  color: #dc2626;
 }
 
 .promo-band {
   background:
-    linear-gradient(135deg, rgba(251, 108, 8, 0.14), transparent 42%),
-    linear-gradient(160deg, #063c28 0%, #0a5238 48%, #1f6b45 100%);
+    linear-gradient(135deg, rgba(220, 38, 38, 0.22), transparent 42%),
+    linear-gradient(160deg, #0a0a0a 0%, #171717 48%, #262626 100%);
+}
+
+/* Primary call-to-action */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.5rem;
+  border-radius: 0.5rem;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 10px 24px -12px rgba(220, 38, 38, 0.65);
+}
+
+.btn-cta:hover {
+  background: #b91c1c;
+  box-shadow: 0 14px 28px -12px rgba(185, 28, 28, 0.7);
+}
+
+.btn-cta:active {
+  transform: translateY(1px);
+}
+
+.btn-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-cta-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.7);
 }

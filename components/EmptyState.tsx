@@ -26,7 +26,7 @@ const EmptyState = ({
       {actionLabel && actionHref && (
         <Link
           href={actionHref}
-          className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-shop_btn_dark_green px-6 text-sm font-semibold text-white transition-colors duration-200 hover:bg-shop_dark_green/90"
+          className="mt-6 btn-cta px-7"
         >
           {actionLabel}
         </Link>
