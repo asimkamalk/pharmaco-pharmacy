@@ -9,6 +9,7 @@ import PriceView from "@/components/PriceView";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
 import ProductPurchaseControls from "@/components/ProductPurchaseControls";
+import TrackProductView from "@/components/TrackProductView";
 import {
   getBrandBySlug,
   getCategoryBySlug,
@@ -116,6 +117,7 @@ const ProductPage = async ({ params }: ProductPageProps) => {
 
   return (
     <main className="bg-white">
+      <TrackProductView productId={product.id} />
       <JsonLd data={buildProductJsonLd(product, siteConfig)} />
       <Container className="py-8 sm:py-10">
         <nav aria-label="Breadcrumb" className="mb-6">

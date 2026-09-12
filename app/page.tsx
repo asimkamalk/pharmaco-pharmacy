@@ -16,6 +16,7 @@ import GoogleMap from "@/components/GoogleMap";
 import HomeHero from "@/components/HomeHero";
 import ProductCard from "@/components/ProductCard";
 import ProductCarousel from "@/components/ProductCarousel";
+import RecentlyViewedSection from "@/components/RecentlyViewedSection";
 import Reveal from "@/components/Reveal";
 import {
   getBestSellers,
@@ -138,6 +139,9 @@ const Home = async () => {
           </div>
         </Container>
       </section>
+
+      {/* Personalized recently viewed */}
+      <RecentlyViewedSection />
 
       {/* Featured products */}
       <section aria-labelledby="featured-products">
