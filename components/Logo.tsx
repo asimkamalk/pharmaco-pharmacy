@@ -18,7 +18,8 @@ const Logo = () => {
         alt={site.name}
         width={1217}
         height={693}
-        priority
+        // Small on-screen logo — stronger compression than the default 75.
+        quality={50}
         sizes="(max-width: 640px) 140px, (max-width: 1024px) 180px, 200px"
         className="h-auto w-32 object-contain sm:w-36 lg:w-44 xl:w-48"
       />

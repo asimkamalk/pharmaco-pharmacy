@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import {
   ArrowRight,
@@ -10,13 +11,10 @@ import {
   Stethoscope,
   Truck,
 } from "lucide-react";
-import BrandLogoStrip from "@/components/BrandLogoStrip";
 import Container from "@/components/Container";
-import GoogleMap from "@/components/GoogleMap";
+import HeroLcpPreload from "@/components/HeroLcpPreload";
 import HomeHero from "@/components/HomeHero";
 import ProductCard from "@/components/ProductCard";
-import ProductCarousel from "@/components/ProductCarousel";
-import RecentlyViewedSection from "@/components/RecentlyViewedSection";
 import Reveal from "@/components/Reveal";
 import {
   getBestSellers,
@@ -28,6 +26,13 @@ import {
 import { getHeroSlides } from "@/lib/hero";
 import { getSiteConfig } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
+
+const RecentlyViewedSection = dynamic(
+  () => import("@/components/RecentlyViewedSection"),
+);
+const ProductCarousel = dynamic(() => import("@/components/ProductCarousel"));
+const BrandLogoStrip = dynamic(() => import("@/components/BrandLogoStrip"));
+const GoogleMap = dynamic(() => import("@/components/GoogleMap"));
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteConfig();
@@ -92,8 +97,11 @@ const Home = async () => {
     icon: whyIcons[index % whyIcons.length],
   }));
 
+  const lcpImage = heroSlides[0]?.backgroundUrl;
+
   return (
     <main className="store-surface">
+      {lcpImage ? <HeroLcpPreload src={lcpImage} /> : null}
       <HomeHero slides={heroSlides} />
 
       {/* Popular categories */}
@@ -227,15 +235,18 @@ const Home = async () => {
 
             <ol className="mt-9 space-y-4">
               {siteConfig.home.rxOrderSteps.map((step, index) => (
-                <Reveal key={step} delayMs={index * 80}>
-                  <li className="flex gap-3 rounded-2xl bg-white/80 p-3.5 ring-1 ring-shop_dark_green/8 sm:gap-4 sm:p-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-shop_btn_dark_green text-sm font-bold text-white">
-                      {index + 1}
-                    </span>
-                    <p className="pt-1 text-sm leading-relaxed text-darkColor sm:text-[15px]">
-                      {step}
-                    </p>
-                  </li>
+                <Reveal
+                  key={step}
+                  as="li"
+                  delayMs={index * 80}
+                  className="flex gap-3 rounded-2xl bg-white/80 p-3.5 ring-1 ring-shop_dark_green/8 sm:gap-4 sm:p-4"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-shop_btn_dark_green text-sm font-bold text-white">
+                    {index + 1}
+                  </span>
+                  <p className="pt-1 text-sm leading-relaxed text-darkColor sm:text-[15px]">
+                    {step}
+                  </p>
                 </Reveal>
               ))}
             </ol>

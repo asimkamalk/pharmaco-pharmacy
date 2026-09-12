@@ -18,9 +18,10 @@ import {
 
 const montserrat = Montserrat({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-montserrat",
   display: "swap",
+  preload: true,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -37,7 +38,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={montserrat.variable}>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <JsonLd
           data={[buildLocalBusinessJsonLd(site), buildWebsiteJsonLd(site)]}
         />

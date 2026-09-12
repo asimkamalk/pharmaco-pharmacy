@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ElementType,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 
 type RevealVariant = "up" | "fade" | "scale";
@@ -12,6 +18,8 @@ interface RevealProps {
   delayMs?: number;
   /** Start visible immediately (e.g. first viewport content) */
   instant?: boolean;
+  /** Render as another element (e.g. `li` inside `ol`/`ul`) */
+  as?: "div" | "li";
 }
 
 const Reveal = ({
@@ -20,8 +28,10 @@ const Reveal = ({
   variant = "up",
   delayMs = 0,
   instant = false,
+  as = "div",
 }: RevealProps) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const Tag = as as ElementType;
+  const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(instant);
 
   useEffect(() => {
@@ -52,7 +62,7 @@ const Reveal = ({
   }, [instant]);
 
   return (
-    <div
+    <Tag
       ref={ref}
       className={cn(
         "reveal",
@@ -63,7 +73,7 @@ const Reveal = ({
       style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 
