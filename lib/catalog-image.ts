@@ -11,16 +11,22 @@ export function catalogInitial(title: string) {
   return (title.trim().charAt(0) || "?").toUpperCase();
 }
 
-/** Reject DVAGO site logos / empty assets that were imported as product photos. */
+/**
+ * Reject unusable / third-party catalog photos.
+ * DVAGO CDN images are watermarked and must not be shown on Pharmaco.
+ */
 export function isUsableProductImage(url?: string | null) {
   if (!url) return false;
   const u = url.toLowerCase();
   if (u.includes("placeholder")) return false;
-  if (u.includes("dvago-logo")) return false;
+  if (u.includes("dvago")) return false;
   if (u.includes("noproductfound")) return false;
-  if (u.includes("www.dvago.pk/assets/")) return false;
-  if (u.includes("/assets/dvago")) return false;
   return true;
+}
+
+export function isDvagoHostedImage(url?: string | null) {
+  if (!url) return false;
+  return url.toLowerCase().includes("dvago");
 }
 
 export function sanitizeProductImages(urls: string[]) {

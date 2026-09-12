@@ -117,12 +117,8 @@ async function upsertProduct(p: DvagoProduct) {
   const description = rebrandCatalogText(
     (p.Description || p.MetaDescription || "").trim(),
   );
-  const rawImage = (p.ProductImage || "").trim();
-  const imageUrl =
-    rawImage.startsWith("http") &&
-    !/dvago-logo|noproductfound|\/assets\/dvago/i.test(rawImage)
-      ? rawImage
-      : "/images/products/placeholder.svg";
+  // Never store DVAGO CDN photos — they are watermarked.
+  const imageUrl = "/images/products/placeholder.svg";
   const stock = Math.max(
     0,
     Math.min(9999, Math.floor(toNumber(p.AvailableQty, 0))),

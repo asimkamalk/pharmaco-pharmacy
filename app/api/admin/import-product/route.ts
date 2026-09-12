@@ -6,6 +6,7 @@ import {
   deriveStripPricing,
   parsePackFromTitle,
 } from "@/lib/pack-from-title";
+import { isUsableProductImage } from "@/lib/catalog-image";
 
 export const runtime = "nodejs";
 
@@ -114,10 +115,9 @@ export async function POST(request: Request) {
       };
 
   const rawImage = (data.imageUrl || "").trim();
-  const imageUrl =
-    rawImage.startsWith("https://") || rawImage.startsWith("http://")
-      ? rawImage
-      : "/images/products/placeholder.svg";
+  const imageUrl = isUsableProductImage(rawImage)
+    ? rawImage
+    : "/images/products/placeholder.svg";
 
   try {
     const category = await prisma.category.upsert({

@@ -118,16 +118,7 @@ function mapProduct(p: DvagoProduct) {
       : undefined,
     brand: (p.Brand || "Unbranded").trim(),
     category,
-    imageUrl: (() => {
-      const raw = (p.ProductImage || "").trim();
-      if (
-        raw.startsWith("http") &&
-        !/dvago-logo|noproductfound|\/assets\/dvago/i.test(raw)
-      ) {
-        return raw;
-      }
-      return "";
-    })(),
+    imageUrl: "",
     sku: p.ProductID ? `pharmaco-${p.ProductID}` : undefined,
     stock: Math.max(0, Math.min(9999, Math.floor(toNumber(p.AvailableQty, 0)))),
     requiresPrescription: false,
